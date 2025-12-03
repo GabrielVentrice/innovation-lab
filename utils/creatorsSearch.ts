@@ -3,7 +3,7 @@ import type { Creator, SearchOptions, CreatorAccount } from '~/types/creator'
 // -------------------------------------------------------------
 // 0. CONFIGURAÇÕES DE AUTENTICAÇÃO
 // -------------------------------------------------------------
-const YOUTUBE_API_KEY = "AIzaSyD6UqWWsv2pSS8BRzZdI4J4GOrG34aBdtY"
+const YOUTUBE_API_KEY = "AIzaSyCqNPgSafjt7dVwB7F0BhhZEREAZjlwjHs"
 const TWITCH_CLIENT_ID = 'lk2fxmv06r22w5ko03pt18i92i6g6j'
 const TWITCH_APP_TOKEN = '28lrwi54tznbx7boforv08qojclv80'
 const TIKTOK_ACCESS_TOKEN = "" // deixe vazio se ainda não tiver
@@ -29,6 +29,16 @@ function extractLinksFromText(text = ""): string[] {
     matches.push(match[1])
   }
   return matches
+}
+
+function extractEmailsFromText(text = ""): string[] {
+  const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g
+  const emails: string[] = []
+  let match
+  while ((match = emailRegex.exec(text)) !== null) {
+    emails.push(match[1])
+  }
+  return emails
 }
 
 function normalizeString(str: string): string {
@@ -162,6 +172,11 @@ async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { ga
 
     const bio = snippet.description || ""
     const links = extractLinksFromText(bio)
+    const emails = extractEmailsFromText(bio)
+    
+    // Add emails as mailto: links to the links array
+    const emailLinks = emails.map(email => `mailto:${email}`)
+    const allLinks = [...links, ...emailLinks]
 
     return {
       platform: "youtube" as const,
@@ -176,7 +191,7 @@ async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { ga
       gameTags: [game].filter(Boolean),
       avatarUrl: snippet.thumbnails?.default?.url || null,
       bio,
-      links
+      links: allLinks
     }
   })
 }
@@ -489,7 +504,7 @@ async function enrichWithTwitchFromLinks(accounts: CreatorAccount[], { language 
 // 7. CROSS-SEARCH ENTRE PLATAFORMAS
 // -------------------------------------------------------------
 
-async function crossSearchAllPlatforms(primaryAccounts: CreatorAccount[], { game, region, sources }: { game: string, region?: string, sources: any }): Promise<CreatorAccount[]> {
+async function crossSearchAllPlatforms(primaryAccounts: CreatorAccount[], { game, language, region, sources }: { game: string, language?: string, region?: string, sources: any }): Promise<CreatorAccount[]> {
   const seedsForYouTube = new Set<string>()
   const seedsForTwitch = new Set<string>()
   const seedsForTikTok = new Set<string>()
@@ -518,7 +533,7 @@ async function crossSearchAllPlatforms(primaryAccounts: CreatorAccount[], { game
   if (sources.youtube && YOUTUBE_API_KEY) {
     const seedArray = Array.from(seedsForYouTube).slice(0, 20)
     for (const name of seedArray) {
-      const res = await searchYouTubeByName(name, { game, region, maxResults: 3 })
+      const res = await searchYouTubeByName(name, { game, language, region, maxResults: 3 })
       results.push(...res)
     }
   }
@@ -526,7 +541,7 @@ async function crossSearchAllPlatforms(primaryAccounts: CreatorAccount[], { game
   if (sources.twitch && TWITCH_CLIENT_ID && TWITCH_APP_TOKEN) {
     const seedArray = Array.from(seedsForTwitch).slice(0, 20)
     for (const name of seedArray) {
-      const res = await searchTwitchByName(name, { game, maxResults: 3 })
+      const res = await searchTwitchByName(name, { game, language, maxResults: 3 })
       results.push(...res)
     }
   }
@@ -534,7 +549,7 @@ async function crossSearchAllPlatforms(primaryAccounts: CreatorAccount[], { game
   if (sources.tiktok && TIKTOK_ACCESS_TOKEN) {
     const seedArray = Array.from(seedsForTikTok).slice(0, 20)
     for (const name of seedArray) {
-      const res = await searchTikTokByName(name, { game, region, maxResults: 3 })
+      const res = await searchTikTokByName(name, { game, language, region, maxResults: 3 })
       results.push(...res)
     }
   }
@@ -601,7 +616,82 @@ function mergeAccountsIntoCreators(accounts: CreatorAccount[]): Creator[] {
 }
 
 // -------------------------------------------------------------
-// 9. FUNÇÃO PRINCIPAL
+// 9. VIEW "SHORT" PARA MARKETING
+// -------------------------------------------------------------
+
+function buildShortView(creators: Creator[]): any[] {
+  return creators.map(creator => {
+    const platforms = Array.from(
+      new Set(creator.accounts.map(acc => acc.platform))
+    )
+
+    const allLinksSet = new Set<string>()
+    for (const acc of creator.accounts) {
+      if (acc.url) allLinksSet.add(acc.url)
+      ;(acc.links || []).forEach(l => allLinksSet.add(l))
+    }
+    const allLinks = Array.from(allLinksSet)
+
+    const socialDomains = [
+      "youtube.com", "youtu.be",
+      "twitch.tv",
+      "tiktok.com",
+      "instagram.com", "instagram.co",
+      "facebook.com",
+      "kick.com",
+      "x.com", "twitter.com",
+      "trovo.live"
+    ]
+
+    const contactPatterns = [
+      "mailto:",
+      "wa.me/",
+      "api.whatsapp.com",
+      "web.whatsapp.com",
+      "discord.gg/",
+      "discord.com/invite",
+      "t.me/"
+    ]
+
+    const socialLinks: string[] = []
+    const contactLinks: string[] = []
+
+    for (const link of allLinks) {
+      let urlHost = ""
+      try {
+        const u = new URL(link)
+        urlHost = u.hostname.toLowerCase()
+      } catch {
+        // ignore parse error
+      }
+
+      const isSocial = socialDomains.some(d => urlHost.includes(d))
+      const isContact =
+        contactPatterns.some(p => link.toLowerCase().includes(p)) ||
+        link.toLowerCase().includes("mailto:")
+
+      if (isContact) {
+        contactLinks.push(link)
+      } else if (isSocial) {
+        socialLinks.push(link)
+      }
+    }
+
+    return {
+      id: creator.id,
+      name: creator.name,
+      platforms,
+      gameTags: creator.gameTags,
+      country: creator.country,
+      language: creator.language,
+      socialLinks,
+      contactLinks
+    }
+  })
+}
+
+// -------------------------------------------------------------
+// 10. FUNÇÃO PRINCIPAL
 // -------------------------------------------------------------
 
 /**
@@ -613,6 +703,7 @@ function mergeAccountsIntoCreators(accounts: CreatorAccount[]): Creator[] {
 export async function searchCreators(options: SearchOptions): Promise<Creator[]> {
   const {
     game,
+    language,
     region
   } = options || {}
 
@@ -631,19 +722,19 @@ export async function searchCreators(options: SearchOptions): Promise<Creator[]>
   const promisesPrimary = []
 
   if (sources.youtube) {
-    promisesPrimary.push(searchYouTubeByGame({ game, region, maxResults: 25 }))
+    promisesPrimary.push(searchYouTubeByGame({ game, language, region, maxResults: 25 }))
   } else {
     promisesPrimary.push(Promise.resolve([]))
   }
 
   if (sources.twitch) {
-    promisesPrimary.push(searchTwitchByGame({ game, maxResults: 25 }))
+    promisesPrimary.push(searchTwitchByGame({ game, language, maxResults: 25 }))
   } else {
     promisesPrimary.push(Promise.resolve([]))
   }
 
   if (sources.tiktok) {
-    promisesPrimary.push(searchTikTokByGame({ game, region, maxResults: 25 }))
+    promisesPrimary.push(searchTikTokByGame({ game, language, region, maxResults: 25 }))
   } else {
     promisesPrimary.push(Promise.resolve([]))
   }
@@ -654,6 +745,7 @@ export async function searchCreators(options: SearchOptions): Promise<Creator[]>
   // 2) CROSS-SEARCH: CADA FONTE PROCURA AS OUTRAS PELOS NOMES
   const crossAccounts = await crossSearchAllPlatforms(primaryAccounts, {
     game,
+    language,
     region,
     sources
   })
@@ -662,7 +754,7 @@ export async function searchCreators(options: SearchOptions): Promise<Creator[]>
 
   // 3) ENRIQUECER COM TWITCH USANDO LINKS NAS BIOS
   if (sources.twitch) {
-    const twitchFromLinks = await enrichWithTwitchFromLinks(allAccounts)
+    const twitchFromLinks = await enrichWithTwitchFromLinks(allAccounts, { language })
     allAccounts = [...allAccounts, ...twitchFromLinks]
   }
 

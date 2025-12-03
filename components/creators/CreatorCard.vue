@@ -40,7 +40,7 @@
           </div>
 
           <!-- Platform Badges -->
-          <div class="flex flex-wrap gap-2 mt-3">
+          <!-- <div class="flex flex-wrap gap-2 mt-3">
             <UiBadge
               v-for="account in creator.accounts"
               :key="account.platform"
@@ -49,7 +49,7 @@
             >
               {{ platformLabels[account.platform] }}
             </UiBadge>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>

@@ -13,6 +13,7 @@ export const useCreators = () => {
   // Filters
   const filters = ref<SearchFilters>({
     game: '',
+    language: undefined,
     region: undefined,
     viewMode: 'full',
   })
@@ -54,6 +55,7 @@ export const useCreators = () => {
     try {
       const searchOptions: SearchOptions = {
         game: filters.value.game,
+        language: filters.value.language,
         region: filters.value.region,
       }
 
@@ -71,6 +73,7 @@ export const useCreators = () => {
     creators.value = []
     filters.value = {
       game: '',
+      language: undefined,
       region: undefined,
       viewMode: 'full',
     }

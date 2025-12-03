@@ -27,12 +27,14 @@ export interface Creator {
 
 export interface SearchFilters {
   game: string
+  language?: string
   region?: string
   viewMode?: 'full' | 'short'
 }
 
 export interface SearchOptions {
   game: string
+  language?: string
   region?: string
 }
 
