@@ -38,6 +38,131 @@
         </p>
       </div>
 
+      <!-- Games Journey Card -->
+      <div class="mb-6 bg-black rounded-lg border border-gray-800 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-white">GAMES JOURNEY</h2>
+          <div class="flex items-center gap-2 text-xs text-gray-500">
+            <span>Timeline by:</span>
+            <div class="flex gap-1">
+              <button class="px-3 py-1 rounded bg-gray-900 text-gray-400 hover:bg-gray-800 transition-colors">Day</button>
+              <button class="px-3 py-1 rounded bg-brand-red text-white">Week</button>
+              <button class="px-3 py-1 rounded bg-gray-900 text-gray-400 hover:bg-gray-800 transition-colors">Month</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-xs text-gray-400 mb-4 uppercase tracking-wider">
+          Daily Average Distinct Connected Users*: ExitLag vs Steam
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="loadingGamesData" class="flex items-center justify-center py-12">
+          <div class="text-center">
+            <svg class="w-8 h-8 animate-spin text-brand-red mx-auto mb-2" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-sm text-gray-400">Loading games data...</p>
+          </div>
+        </div>
+
+        <!-- Games Table -->
+        <div v-else class="overflow-x-auto">
+          <div class="inline-block min-w-full align-middle">
+            <!-- Table with scrollable body -->
+            <div class="border border-gray-800 rounded-lg overflow-hidden">
+              <table class="min-w-full table-fixed">
+                <colgroup>
+                  <col class="w-16">
+                  <col class="w-52">
+                  <col v-for="week in weekHeaders" :key="'col1-' + week.date" class="w-24">
+                  <col v-for="week in weekHeaders" :key="'col2-' + week.date" class="w-24">
+                </colgroup>
+                <thead class="border-b border-gray-800">
+                  <tr class="text-xs text-gray-400 bg-gray-950">
+                    <th colspan="2" class="px-4 py-3 text-center font-semibold uppercase tracking-wider border-r border-gray-800">Week</th>
+                    <th v-for="week in weekHeaders" :key="week.date" class="px-4 py-2 text-center font-semibold uppercase tracking-wider border-l border-gray-800" :colspan="2">
+                      {{ week.label }}
+                    </th>
+                  </tr>
+                  <tr class="text-xs text-gray-400 bg-gray-950 border-t border-gray-800">
+                    <th colspan="2" class="px-4 py-3 text-center font-semibold uppercase tracking-wider border-r border-gray-800">Top 100 Application</th>
+                    <template v-for="week in weekHeaders" :key="'sub-' + week.date">
+                      <th class="px-4 py-2 text-center font-medium uppercase tracking-wider border-l border-gray-800">
+                        <span class="text-brand-red">Exitlag</span>
+                      </th>
+                      <th class="px-4 py-2 text-center font-medium uppercase tracking-wider">
+                        <span class="text-blue-400">Steam</span>
+                      </th>
+                    </template>
+                  </tr>
+                </thead>
+              </table>
+
+              <!-- Scrollable tbody -->
+              <div class="overflow-y-auto" style="max-height: 280px;">
+                <table class="min-w-full table-fixed">
+                  <colgroup>
+                    <col class="w-16">
+                    <col class="w-52">
+                    <col v-for="week in weekHeaders" :key="'col1-' + week.date" class="w-24">
+                    <col v-for="week in weekHeaders" :key="'col2-' + week.date" class="w-24">
+                  </colgroup>
+                  <tbody class="divide-y divide-gray-800 bg-black">
+                    <tr v-for="(game, index) in topGames" :key="game.name" class="hover:bg-gray-900/50 transition-colors">
+                      <td class="sticky left-0 bg-black hover:bg-gray-900/50 px-4 py-2.5 text-xs text-gray-400 border-r border-gray-800 z-10 text-center">
+                        {{ index + 1 }}
+                      </td>
+                      <td class="sticky left-16 bg-black hover:bg-gray-900/50 px-4 py-2.5 text-xs font-medium text-white border-r border-gray-800 z-10 text-center">
+                        {{ game.name }}
+                      </td>
+                      <template v-for="(week, weekIdx) in game.weeklyData" :key="'data-' + week.date">
+                        <td :class="['px-4 py-2.5 text-xs text-center font-mono', weekIdx === 0 ? 'border-l border-gray-800' : '']">
+                          <span class="text-brand-red">{{ formatNumberAbbreviated(week.exitlag) }}</span>
+                        </td>
+                        <td class="px-4 py-2.5 text-xs text-center font-mono">
+                          <span class="text-blue-400">{{ formatNumberAbbreviated(week.steam) }}</span>
+                        </td>
+                      </template>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Fixed footer with totals -->
+              <table class="min-w-full border-t-2 border-gray-700 table-fixed">
+                <colgroup>
+                  <col class="w-16">
+                  <col class="w-52">
+                  <col v-for="week in weekHeaders" :key="'col1-' + week.date" class="w-24">
+                  <col v-for="week in weekHeaders" :key="'col2-' + week.date" class="w-24">
+                </colgroup>
+                <tfoot class="bg-gray-900">
+                  <tr class="font-bold">
+                    <td class="bg-gray-900 px-4 py-3 text-xs text-white border-r border-gray-800 text-center" colspan="2">
+                      Total
+                    </td>
+                    <template v-for="(week, weekIdx) in weekTotals" :key="'total-' + week.date">
+                      <td :class="['px-4 py-3 text-xs text-center font-mono', weekIdx === 0 ? 'border-l border-gray-800' : '']">
+                        <span class="text-brand-red font-bold">{{ formatNumberAbbreviated(week.exitlag) }}</span>
+                      </td>
+                      <td class="px-4 py-3 text-xs text-center font-mono">
+                        <span class="text-blue-400 font-bold">{{ formatNumberAbbreviated(week.steam) }}</span>
+                      </td>
+                    </template>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-500 mt-4 italic">
+          Important: For Exitlag, we consider the distinct number of users throughout the entire day. For Steam, we consider the peak concurrent users reached during the day.
+        </p>
+      </div>
+
       <!-- Search Bar -->
       <div class="mb-6">
         <CreatorsCreatorFilters
@@ -129,8 +254,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import type { Creator } from '~/types/creator'
+
+interface WeekData {
+  date: string
+  exitlag: number
+  steam: number
+}
+
+interface GameData {
+  name: string
+  weeklyData: WeekData[]
+  totalSteam: number
+}
+
+interface TrendData {
+  app_name_greenball: string
+  date: string
+  STEAM_MAX_PLAYER_COUNT: number
+  daily_connections: number
+  EXITLAG_unique_users: number
+}
 
 // Meta tags
 useHead({
@@ -161,6 +306,34 @@ const {
 // Local state
 const isModalOpen = ref(false)
 const selectedCreator = ref<Creator | null>(null)
+const loadingGamesData = ref(false)
+const topGames = ref<GameData[]>([])
+const weekHeaders = ref<{ label: string, date: string }[]>([])
+
+// Computed
+const weekTotals = computed(() => {
+  if (topGames.value.length === 0) return []
+  
+  const totals: WeekData[] = []
+  const numWeeks = topGames.value[0]?.weeklyData.length || 0
+  
+  for (let i = 0; i < numWeeks; i++) {
+    const weekTotal = {
+      date: topGames.value[0].weeklyData[i].date,
+      exitlag: 0,
+      steam: 0
+    }
+    
+    topGames.value.forEach(game => {
+      weekTotal.exitlag += game.weeklyData[i].exitlag
+      weekTotal.steam += game.weeklyData[i].steam
+    })
+    
+    totals.push(weekTotal)
+  }
+  
+  return totals
+})
 
 // Popular games for quick search
 const popularGames = [
@@ -201,4 +374,128 @@ const handleMarkContacted = (creator: Creator) => {
   console.log('Marked as contacted:', creator.name)
   // In a real app, this would update a backend or local storage
 }
+
+// Format number helper with thousands separator
+const formatNumber = (num: number): string => {
+  return num.toLocaleString('en-US')
+}
+
+// Format number with abbreviations (K, M)
+const formatNumberAbbreviated = (num: number): string => {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace('.0', '') + 'M'
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace('.0', '') + 'K'
+  }
+  return num.toString()
+}
+
+// Get week number from date
+const getWeekNumber = (dateStr: string): number => {
+  const date = new Date(dateStr)
+  const startOfYear = new Date(date.getFullYear(), 0, 1)
+  const days = Math.floor((date.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000))
+  return Math.ceil((days + startOfYear.getDay() + 1) / 7)
+}
+
+// Load games data from CSV
+const loadGamesData = async () => {
+  try {
+    loadingGamesData.value = true
+    
+    const response = await fetch('/data/trends.csv')
+    if (!response.ok) throw new Error('Failed to load trends data')
+    
+    const csvText = await response.text()
+    const lines = csvText.trim().split('\n')
+    
+    // Parse CSV
+    const trendsData: TrendData[] = lines.slice(1).map(line => {
+      const values: string[] = []
+      let current = ''
+      let inQuotes = false
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i]
+        if (char === '"') {
+          inQuotes = !inQuotes
+        } else if (char === ',' && !inQuotes) {
+          values.push(current)
+          current = ''
+        } else {
+          current += char
+        }
+      }
+      values.push(current)
+      
+      return {
+        app_name_greenball: values[0],
+        date: values[1],
+        STEAM_MAX_PLAYER_COUNT: parseInt(values[2]) || 0,
+        daily_connections: parseInt(values[3]) || 0,
+        EXITLAG_unique_users: parseInt(values[4]) || 0,
+      }
+    })
+    
+    // Get last 7 days
+    const uniqueDates = [...new Set(trendsData.map(d => d.date))].sort().reverse()
+    const last7Days = uniqueDates.slice(0, 7).reverse()
+    
+    // Filter data for last 7 days
+    const filteredData = trendsData.filter(d => last7Days.includes(d.date))
+    
+    // Group by game
+    const gameMap = new Map<string, TrendData[]>()
+    filteredData.forEach(item => {
+      if (!gameMap.has(item.app_name_greenball)) {
+        gameMap.set(item.app_name_greenball, [])
+      }
+      gameMap.get(item.app_name_greenball)!.push(item)
+    })
+    
+    // Calculate total Steam players for each game and prepare data
+    const gamesData: GameData[] = []
+    gameMap.forEach((days, gameName) => {
+      const weeklyData: WeekData[] = last7Days.map(date => {
+        const dayData = days.find(d => d.date === date)
+        return {
+          date,
+          exitlag: dayData?.EXITLAG_unique_users || 0,
+          steam: dayData?.STEAM_MAX_PLAYER_COUNT || 0
+        }
+      })
+      
+      const totalSteam = weeklyData.reduce((sum, day) => sum + day.steam, 0)
+      
+      gamesData.push({
+        name: gameName,
+        weeklyData,
+        totalSteam
+      })
+    })
+    
+    // Sort by total Steam players and get top 100
+    gamesData.sort((a, b) => b.totalSteam - a.totalSteam)
+    topGames.value = gamesData.slice(0, 100)
+    
+    // Set week headers with real week numbers
+    weekHeaders.value = last7Days.map((date) => {
+      const weekNum = getWeekNumber(date)
+      return {
+        label: `W${weekNum}`,
+        date
+      }
+    })
+    
+  } catch (err) {
+    console.error('Error loading games data:', err)
+  } finally {
+    loadingGamesData.value = false
+  }
+}
+
+// Load data on mount
+onMounted(() => {
+  loadGamesData()
+})
 </script>
