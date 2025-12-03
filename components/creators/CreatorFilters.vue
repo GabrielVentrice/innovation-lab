@@ -1,44 +1,44 @@
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+  <div class="bg-black rounded-lg border border-gray-800 shadow-sm">
     <form @submit.prevent="handleSubmit" class="p-6">
       <div class="flex flex-col lg:flex-row gap-4 items-end">
         <!-- Game Input (Required) -->
         <div class="flex-1 min-w-[200px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+          <label class="block text-sm font-medium text-white mb-1.5">
             Game *
           </label>
           <input
             v-model="localFilters.game"
             type="text"
             placeholder="e.g., Valorant, League of Legends, CS2"
-            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            :class="{ 'border-red-500': errors.game }"
+            class="w-full px-4 py-2.5 border border-gray-800 rounded-lg focus:ring-2 focus:ring-brand-red focus:border-transparent transition-all bg-gray-900 text-white placeholder-gray-500"
+            :class="{ 'border-brand-red': errors.game }"
             required
           />
-          <p v-if="errors.game" class="mt-1 text-sm text-red-600">{{ errors.game }}</p>
+          <p v-if="errors.game" class="mt-1 text-sm text-brand-red">{{ errors.game }}</p>
         </div>
 
         <!-- Language Input -->
         <div class="flex-1 min-w-[180px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+          <label class="block text-sm font-medium text-white mb-1.5">
             Language
           </label>
           <input
             v-model="localFilters.language"
             type="text"
             placeholder="e.g., pt, en, es"
-            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+            class="w-full px-4 py-2.5 border border-gray-800 rounded-lg focus:ring-2 focus:ring-brand-red focus:border-transparent transition-all bg-gray-900 text-white placeholder-gray-500"
           />
         </div>
 
         <!-- Region Select -->
         <div class="flex-1 min-w-[180px]">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+          <label class="block text-sm font-medium text-white mb-1.5">
             Region
           </label>
           <select
             v-model="localFilters.region"
-            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white"
+            class="w-full px-4 py-2.5 border border-gray-800 rounded-lg focus:ring-2 focus:ring-brand-red focus:border-transparent transition-all bg-gray-900 text-white"
           >
             <option :value="undefined">All regions</option>
             <option v-for="option in regionOptions" :key="option.value" :value="option.value">
@@ -49,10 +49,10 @@
 
         <!-- View Mode Toggle -->
         <div class="flex-shrink-0">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+          <label class="block text-sm font-medium text-white mb-1.5">
             View Mode
           </label>
-          <div class="flex gap-1 border border-gray-300 rounded-lg p-1 bg-gray-50">
+          <div class="flex gap-1 border border-gray-800 rounded-lg p-1 bg-gray-900">
             <button
               v-for="mode in viewModes"
               :key="mode.value"
@@ -70,7 +70,7 @@
           <button
             type="submit"
             :disabled="loading"
-            class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            class="px-6 py-2.5 bg-brand-red hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <svg v-if="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -86,7 +86,7 @@
             type="button"
             @click="handleReset"
             :disabled="loading"
-            class="px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg border border-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Reset
           </button>
@@ -146,9 +146,9 @@ const viewModeButtonClasses = (mode: 'full' | 'short') => {
   const base = 'px-4 py-1.5 rounded-md text-sm font-medium transition-all'
 
   if (isSelected) {
-    return `${base} bg-white text-primary-700 shadow-sm`
+    return `${base} bg-black text-brand-red shadow-sm`
   }
-  return `${base} text-gray-600 hover:text-gray-900`
+  return `${base} text-gray-500 hover:text-white`
 }
 
 const handleSubmit = () => {

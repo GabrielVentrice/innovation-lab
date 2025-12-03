@@ -1,10 +1,10 @@
 <template>
   <div
-    class="bg-white rounded-xl shadow-soft border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-medium hover:border-gray-300 cursor-pointer group"
+    class="bg-black rounded-xl border border-gray-800 overflow-hidden transition-all duration-200 hover:border-brand-red cursor-pointer group"
     @click="$emit('click')"
   >
     <!-- Header with Avatar and Name -->
-    <div class="p-5 border-b border-gray-100">
+    <div class="p-5 border-b border-gray-800">
       <div class="flex items-start gap-4">
         <!-- Avatar -->
         <div class="flex-shrink-0">
@@ -14,8 +14,8 @@
             :alt="creator.name"
             class="w-16 h-16 rounded-full border-2 border-gray-200 object-cover"
           />
-          <div v-else class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-            <span class="text-2xl font-semibold text-gray-500">
+          <div v-else class="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center">
+            <span class="text-2xl font-semibold text-gray-400">
               {{ creator.name[0].toUpperCase() }}
             </span>
           </div>
@@ -23,12 +23,12 @@
 
         <!-- Info -->
         <div class="flex-1 min-w-0">
-          <h3 class="text-lg font-semibold text-gray-900 truncate group-hover:text-primary transition-colors">
+          <h3 class="text-lg font-semibold text-white truncate group-hover:text-brand-red transition-colors">
             {{ creator.name }}
           </h3>
 
           <!-- Location and Language -->
-          <div class="flex items-center gap-3 mt-1 text-sm text-gray-600">
+          <div class="flex items-center gap-3 mt-1 text-sm text-gray-400">
             <span v-if="creator.country" class="flex items-center gap-1">
               <span>{{ getCountryFlag(creator.country) }}</span>
               <span>{{ creator.country }}</span>
@@ -72,23 +72,23 @@
 
       <!-- Stats -->
       <div class="grid grid-cols-2 gap-4">
-        <div class="bg-gray-50 rounded-lg p-3">
-          <div class="text-xs text-gray-600 mb-1">Total Followers</div>
-          <div class="text-xl font-semibold text-gray-900">
+        <div class="bg-gray-900 rounded-lg p-3 border border-gray-800">
+          <div class="text-xs text-gray-500 mb-1">Total Followers</div>
+          <div class="text-xl font-semibold text-white">
             {{ formatNumber(totalFollowers) }}
           </div>
         </div>
-        <div class="bg-gray-50 rounded-lg p-3">
-          <div class="text-xs text-gray-600 mb-1">Platforms</div>
-          <div class="text-xl font-semibold text-gray-900">
+        <div class="bg-gray-900 rounded-lg p-3 border border-gray-800">
+          <div class="text-xs text-gray-500 mb-1">Platforms</div>
+          <div class="text-xl font-semibold text-white">
             {{ creator.accounts.length }}
           </div>
         </div>
       </div>
 
       <!-- Contact Links (if available) -->
-      <div v-if="contactLinks.length > 0" class="pt-2 border-t border-gray-100">
-        <div class="text-xs font-medium text-gray-600 mb-2">Contact</div>
+      <div v-if="contactLinks.length > 0" class="pt-2 border-t border-gray-800">
+        <div class="text-xs font-medium text-gray-400 mb-2">Contact</div>
         <div class="flex flex-wrap gap-2">
           <a
             v-for="link in contactLinks.slice(0, 3)"
@@ -96,7 +96,7 @@
             :href="link.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg text-xs font-medium hover:bg-primary-100 transition-colors"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-brand-red rounded-lg text-xs font-medium hover:bg-gray-800 border border-gray-800 hover:border-brand-red transition-all"
             @click.stop
           >
             <span>{{ getContactIcon(link.type) }}</span>
@@ -113,7 +113,7 @@
           :href="link.url"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-gray-500 hover:text-primary transition-colors"
+          class="text-gray-500 hover:text-brand-red transition-colors"
           :title="link.label"
           @click.stop
         >

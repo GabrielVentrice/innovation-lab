@@ -3,15 +3,15 @@
     <Transition name="modal">
       <div
         v-if="isOpen && creator"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
         @click.self="close"
       >
         <div
-          class="bg-white rounded-2xl shadow-large max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+          class="bg-black rounded-2xl border border-gray-800 shadow-large max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
           @click.stop
         >
           <!-- Header -->
-          <div class="flex items-start justify-between p-6 border-b border-gray-200">
+          <div class="flex items-start justify-between p-6 border-b border-gray-800">
             <div class="flex items-start gap-4 flex-1">
               <img
                 v-if="primaryAccount?.avatarUrl"
@@ -19,18 +19,18 @@
                 :alt="creator.name"
                 class="w-20 h-20 rounded-full border-2 border-gray-200 object-cover"
               />
-              <div v-else class="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
-                <span class="text-3xl font-semibold text-gray-500">
+              <div v-else class="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center">
+                <span class="text-3xl font-semibold text-gray-400">
                   {{ creator.name[0].toUpperCase() }}
                 </span>
               </div>
 
               <div class="flex-1">
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                <h2 class="text-2xl font-bold text-white mb-2">
                   {{ creator.name }}
                 </h2>
 
-                <div class="flex items-center gap-4 text-sm text-gray-600">
+                <div class="flex items-center gap-4 text-sm text-gray-400">
                   <span v-if="creator.country" class="flex items-center gap-1">
                     <span>{{ getCountryFlag(creator.country) }}</span>
                     <span>{{ creator.country }}</span>
@@ -54,7 +54,7 @@
             </div>
 
             <button
-              class="text-gray-400 hover:text-gray-600 transition-colors p-2"
+              class="text-gray-500 hover:text-brand-red transition-colors p-2"
               @click="close"
             >
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,21 +68,21 @@
             <div class="space-y-8">
               <!-- Stats Overview -->
               <div class="grid grid-cols-3 gap-4">
-                <div class="bg-gray-50 rounded-xl p-4 text-center">
-                  <div class="text-sm text-gray-600 mb-1">Total Followers</div>
-                  <div class="text-2xl font-bold text-gray-900">
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+                  <div class="text-sm text-gray-500 mb-1">Total Followers</div>
+                  <div class="text-2xl font-bold text-white">
                     {{ formatNumber(totalFollowers) }}
                   </div>
                 </div>
-                <div class="bg-gray-50 rounded-xl p-4 text-center">
-                  <div class="text-sm text-gray-600 mb-1">Platforms</div>
-                  <div class="text-2xl font-bold text-gray-900">
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+                  <div class="text-sm text-gray-500 mb-1">Platforms</div>
+                  <div class="text-2xl font-bold text-white">
                     {{ creator.accounts.length }}
                   </div>
                 </div>
-                <div class="bg-gray-50 rounded-xl p-4 text-center">
-                  <div class="text-sm text-gray-600 mb-1">Avg Views</div>
-                  <div class="text-2xl font-bold text-gray-900">
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+                  <div class="text-sm text-gray-500 mb-1">Avg Views</div>
+                  <div class="text-2xl font-bold text-white">
                     {{ formatNumber(avgViews) }}
                   </div>
                 </div>
@@ -90,7 +90,7 @@
 
               <!-- Contact Links -->
               <div v-if="contactLinks.length > 0">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Contact</h3>
+                <h3 class="text-lg font-semibold text-white mb-4">Contact</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <a
                     v-for="link in contactLinks"
@@ -98,12 +98,12 @@
                     :href="link.url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="flex items-center gap-3 p-4 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors group"
+                    class="flex items-center gap-3 p-4 bg-gray-900 text-brand-red rounded-lg hover:bg-gray-800 border border-gray-800 hover:border-brand-red transition-all group"
                   >
                     <span class="text-2xl">{{ getContactIcon(link.type) }}</span>
                     <div class="flex-1 min-w-0">
                       <div class="font-medium">{{ link.label }}</div>
-                      <div class="text-xs text-primary-600 truncate">{{ link.url }}</div>
+                      <div class="text-xs text-gray-400 truncate">{{ link.url }}</div>
                     </div>
                     <svg class="w-5 h-5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -114,12 +114,12 @@
 
               <!-- Platform Accounts -->
               <div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Platform Accounts</h3>
+                <h3 class="text-lg font-semibold text-white mb-4">Platform Accounts</h3>
                 <div class="space-y-4">
                   <div
                     v-for="account in creator.accounts"
                     :key="account.externalId"
-                    class="border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors"
+                    class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-brand-red transition-colors"
                   >
                     <div class="flex items-start justify-between mb-3">
                       <div class="flex items-center gap-3">
@@ -130,7 +130,7 @@
                           :href="account.url"
                           target="_blank"
                           rel="noopener noreferrer"
-                          class="font-medium text-gray-900 hover:text-primary transition-colors"
+                          class="font-medium text-white hover:text-brand-red transition-colors"
                         >
                           @{{ account.username }}
                         </a>
@@ -139,7 +139,7 @@
                         :href="account.url"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="text-gray-400 hover:text-primary transition-colors"
+                        class="text-gray-500 hover:text-brand-red transition-colors"
                       >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -149,20 +149,20 @@
 
                     <div class="grid grid-cols-2 gap-4 mb-3">
                       <div>
-                        <div class="text-xs text-gray-600">Followers</div>
-                        <div class="text-lg font-semibold text-gray-900">
+                        <div class="text-xs text-gray-500">Followers</div>
+                        <div class="text-lg font-semibold text-white">
                           {{ formatNumber(account.followers) }}
                         </div>
                       </div>
                       <div>
-                        <div class="text-xs text-gray-600">Avg Views</div>
-                        <div class="text-lg font-semibold text-gray-900">
+                        <div class="text-xs text-gray-500">Avg Views</div>
+                        <div class="text-lg font-semibold text-white">
                           {{ formatNumber(account.avgViews) }}
                         </div>
                       </div>
                     </div>
 
-                    <p v-if="account.bio" class="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                    <p v-if="account.bio" class="text-sm text-gray-400 leading-relaxed whitespace-pre-wrap">
                       {{ account.bio }}
                     </p>
                   </div>
@@ -171,7 +171,7 @@
 
               <!-- Social Links -->
               <div v-if="socialLinks.length > 0">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Social Media</h3>
+                <h3 class="text-lg font-semibold text-white mb-4">Social Media</h3>
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <a
                     v-for="link in socialLinks"
@@ -179,10 +179,10 @@
                     :href="link.url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-50 transition-colors group"
+                    class="flex items-center gap-3 p-3 bg-gray-900 border border-gray-800 rounded-lg hover:border-brand-red transition-all group"
                   >
                     <span class="text-xl">{{ getSocialIcon(link.type) }}</span>
-                    <span class="text-sm font-medium text-gray-700 group-hover:text-primary">
+                    <span class="text-sm font-medium text-gray-300 group-hover:text-brand-red">
                       {{ link.label }}
                     </span>
                   </a>
@@ -191,7 +191,7 @@
 
               <!-- Other Links -->
               <div v-if="otherLinks.length > 0">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Other Links</h3>
+                <h3 class="text-lg font-semibold text-white mb-4">Other Links</h3>
                 <div class="space-y-2">
                   <a
                     v-for="link in otherLinks"
@@ -199,7 +199,7 @@
                     :href="link.url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-sm text-gray-700"
+                    class="flex items-center gap-2 p-3 bg-gray-900 border border-gray-800 rounded-lg hover:border-brand-red transition-all text-sm text-gray-300"
                   >
                     <span>🔗</span>
                     <span class="truncate">{{ link.url }}</span>
@@ -210,7 +210,7 @@
           </div>
 
           <!-- Footer Actions -->
-          <div class="flex items-center gap-3 p-6 border-t border-gray-200 bg-gray-50">
+          <!-- <div class="flex items-center gap-3 p-6 border-t border-gray-800 bg-gray-900">
             <UiButton
               variant="primary"
               size="lg"
@@ -233,7 +233,7 @@
             >
               Close
             </UiButton>
-          </div>
+          </div> -->
         </div>
       </div>
     </Transition>

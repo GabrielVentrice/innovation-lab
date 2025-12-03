@@ -90,7 +90,7 @@ function arePossiblySameCreator(a: CreatorAccount, b: CreatorAccount): boolean {
 // 3. YOUTUBE: SEARCH POR JOGO E POR NOME
 // -------------------------------------------------------------
 
-async function searchYouTubeByGame({ game, language, region, maxResults = 25 }: { game: string, language?: string, region?: string, maxResults?: number }): Promise<CreatorAccount[]> {
+async function searchYouTubeByGame({ game, language, region, maxResults = 5 }: { game: string, language?: string, region?: string, maxResults?: number }): Promise<CreatorAccount[]> {
   if (!YOUTUBE_API_KEY) return []
 
   const query = `${game} ${language || ""}`.trim()
@@ -101,6 +101,7 @@ async function searchYouTubeByGame({ game, language, region, maxResults = 25 }: 
   searchUrl.searchParams.set("q", query)
   searchUrl.searchParams.set("maxResults", String(maxResults))
   searchUrl.searchParams.set("key", YOUTUBE_API_KEY)
+  
   if (region) searchUrl.searchParams.set("regionCode", region)
 
   const searchRes = await fetch(searchUrl.toString())
@@ -152,7 +153,7 @@ async function searchYouTubeByName(name: string, { game, language, region, maxRe
 
 async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { game: string, language?: string }): Promise<CreatorAccount[]> {
   const channelsUrl = new URL("https://www.googleapis.com/youtube/v3/channels")
-  channelsUrl.searchParams.set("part", "snippet,statistics")
+  channelsUrl.searchParams.set("part", "brandingSettings,snippet,statistics,status")
   channelsUrl.searchParams.set("id", ids.join(","))
   channelsUrl.searchParams.set("key", YOUTUBE_API_KEY)
 
@@ -166,6 +167,9 @@ async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { ga
   return (channelsData.items || []).map((ch: any) => {
     const snippet = ch.snippet || {}
     const stats = ch.statistics || {}
+    const brandingSettings = ch.brandingSettings || {}
+    const channel = brandingSettings.channel || {}
+    
     const username =
       (snippet.customUrl || "").replace(/^@/, "") ||
       normalizeString(snippet.title || "") ||
@@ -175,9 +179,37 @@ async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { ga
     const links = extractLinksFromText(bio)
     const emails = extractEmailsFromText(bio)
     
-    // Add emails as mailto: links to the links array
+    // Extract links from brandingSettings
+    const brandingLinks: string[] = []
+    
+    // Get unsubscribed trailer (can contain links)
+    if (channel.unsubscribedTrailer) {
+      brandingLinks.push(`https://www.youtube.com/watch?v=${channel.unsubscribedTrailer}`)
+    }
+    
+    // Get links from channel keywords/tags
+    if (channel.keywords) {
+      const keywordLinks = extractLinksFromText(channel.keywords)
+      brandingLinks.push(...keywordLinks)
+    }
+    
+    // Get contact links from channel
+    if (channel.contactLink) {
+      brandingLinks.push(channel.contactLink)
+    }
+    
+    // Check for social links in brandingSettings
+    const image = brandingSettings.image || {}
+    if (image.bannerExternalUrl) {
+      const bannerLinks = extractLinksFromText(image.bannerExternalUrl)
+      brandingLinks.push(...bannerLinks)
+    }
+    
+    // Add emails as mailto: links
     const emailLinks = emails.map(email => `mailto:${email}`)
-    const allLinks = [...links, ...emailLinks]
+    
+    // Combine all links and remove duplicates
+    const allLinks = Array.from(new Set([...links, ...brandingLinks, ...emailLinks]))
 
     return {
       platform: "youtube" as const,
@@ -201,7 +233,7 @@ async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { ga
 // 4. TWITCH: SEARCH POR JOGO E POR NOME
 // -------------------------------------------------------------
 
-async function searchTwitchByGame({ game, language, maxResults = 25 }: { game: string, language?: string, maxResults?: number }): Promise<CreatorAccount[]> {
+async function searchTwitchByGame({ game, language, maxResults = 5 }: { game: string, language?: string, maxResults?: number }): Promise<CreatorAccount[]> {
   if (!TWITCH_CLIENT_ID || !TWITCH_APP_TOKEN) return []
 
   const url = new URL("https://api.twitch.tv/helix/search/channels")
@@ -310,7 +342,7 @@ async function searchTwitchByName(name: string, { game, language, maxResults = 5
 // 5. TIKTOK: SEARCH POR JOGO E POR NOME (PLACEHOLDER)
 // -------------------------------------------------------------
 
-async function searchTikTokByGame({ game, language, region, maxResults = 25 }: { game: string, language?: string, region?: string, maxResults?: number }): Promise<CreatorAccount[]> {
+async function searchTikTokByGame({ game, language, region, maxResults = 5 }: { game: string, language?: string, region?: string, maxResults?: number }): Promise<CreatorAccount[]> {
   if (!TIKTOK_ACCESS_TOKEN) return []
 
   const tag = game.replace(/\s+/g, "")
@@ -723,7 +755,7 @@ export async function searchCreators(options: SearchOptions): Promise<Creator[]>
   let primaryAccounts: CreatorAccount[] = []
   
   if (sources.youtube) {
-    primaryAccounts = await searchYouTubeByGame({ game, language, region, maxResults: 25 })
+    primaryAccounts = await searchYouTubeByGame({ game, language, region, maxResults: 5 })
   }
 
   // Se não tiver YouTube ativo ou não encontrou nada, retorna vazio
