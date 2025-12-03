@@ -9,6 +9,7 @@ export interface Campaign {
   endDate: string
   brand: string
   assetsUrl?: string
+  additionalAssetsUrl?: string
   deliverables: string[]
   budget?: string
   requirements?: string[]

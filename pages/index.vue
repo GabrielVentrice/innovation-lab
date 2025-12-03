@@ -5,8 +5,22 @@
       <div class="max-w-[1400px] mx-auto px-6 lg:px-8 py-6">
         <div class="flex items-center justify-between">
           <img src="~/assets/images/exitlag-logo.svg" alt="ExitLag Logo" class="h-8 w-auto">
-          <div class="text-xs text-gray-500">
-            {{ resultsCount }} results
+          <div class="flex items-center gap-6">
+            <NuxtLink
+              to="/creators"
+              class="text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              Creators Cadastrados
+            </NuxtLink>
+            <NuxtLink
+              to="/register"
+              class="text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              Cadastrar Criador
+            </NuxtLink>
+            <div class="text-xs text-gray-500">
+              {{ resultsCount }} results
+            </div>
           </div>
         </div>
       </div>

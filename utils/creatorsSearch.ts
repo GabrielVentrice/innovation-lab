@@ -111,6 +111,8 @@ async function searchYouTubeByGame({ game, language, region, maxResults = 5 }: {
   }
   const searchData = await searchRes.json()
 
+  console.log('searchYoutubeByGame', searchData)
+
   const channelIds =
     (searchData.items || [])
       .map((item: any) => item.snippet && item.snippet.channelId)
@@ -142,6 +144,7 @@ async function searchYouTubeByName(name: string, { game, language, region, maxRe
   }
   const data = await res.json()
 
+  console.log('searchYoutubeByName', data)
   const channelIds =
     (data.items || [])
       .map((item: any) => item.snippet && item.snippet.channelId)
@@ -164,6 +167,7 @@ async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { ga
   }
   const channelsData = await channelsRes.json()
 
+  console.log('fetchYouTubeChannelsByIds', channelsData)
   return (channelsData.items || []).map((ch: any) => {
     const snippet = ch.snippet || {}
     const stats = ch.statistics || {}

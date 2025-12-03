@@ -17,7 +17,7 @@
       <!-- Title Section -->
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-white">
-          My Campaigns
+          ExitLab Creators HUB
         </h1>
         <p class="mt-1 text-sm text-gray-500">
           View and manage your active campaign partnerships
@@ -47,10 +47,33 @@
           class="bg-black border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-colors"
         >
           <!-- Campaign Header -->
-          <div class="p-6 border-b border-gray-800">
+          <div class="p-6 cursor-pointer" @click="toggleCampaign(campaign.id)">
             <div class="flex items-start justify-between gap-4">
               <div class="flex-1">
-                <div class="flex items-center gap-3 mb-2">
+                <div class="flex items-center gap-3 mb-3">
+                  <button
+                    @click.stop="toggleCampaign(campaign.id)"
+                    class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                  >
+                    <svg
+                      v-if="isExpanded(campaign.id)"
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                    <svg
+                      v-else
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                   <h2 class="text-xl font-bold text-white">
                     {{ campaign.title }}
                   </h2>
@@ -58,36 +81,77 @@
                     {{ campaign.status }}
                   </span>
                 </div>
-                <div class="flex items-center gap-4 text-sm text-gray-500">
-                  <span class="flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    {{ campaign.brand }}
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    {{ formatDate(campaign.startDate) }} - {{ formatDate(campaign.endDate) }}
-                  </span>
+                <!-- URL Section - Always visible -->
+                <div v-if="campaign.assetsUrl" class="ml-8 mb-3">
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-lg px-3 py-2">
+                      <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                      <input
+                        :value="campaign.assetsUrl"
+                        readonly
+                        class="flex-1 bg-transparent text-sm text-gray-400 outline-none"
+                        @click.stop
+                      >
+                    </div>
+                    <button
+                      @click.stop="copyToClipboard(campaign.assetsUrl, campaign.id)"
+                      class="flex-shrink-0 px-4 py-2 bg-brand-red hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      <svg v-if="copiedAssetId === campaign.id" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      {{ copiedAssetId === campaign.id ? 'Copied!' : 'Copy URL' }}
+                    </button>
+                  </div>
+                </div>
+                <div v-else class="ml-8 mb-3">
+                  <p class="text-sm text-gray-500">No assets URL available yet</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Campaign Content -->
-          <div class="p-6 space-y-6">
-            <!-- Briefing Section -->
-            <div>
-              <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Campaign Briefing
-              </h3>
-              <div class="bg-gray-900 rounded-lg p-4">
-                <p class="text-sm text-gray-300 whitespace-pre-line">{{ campaign.briefing }}</p>
+          <!-- Campaign Content - Collapsible -->
+          <div v-if="isExpanded(campaign.id)" class="p-6 space-y-6 border-t border-gray-800">
+            <!-- Briefing and Preview Sections -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+              <!-- Campaign Briefing Section -->
+              <div class="flex flex-col">
+                <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Campaign Briefing
+                </h3>
+                <div class="bg-gray-900 rounded-lg p-4 flex-1">
+                  <p class="text-sm text-gray-300 whitespace-pre-line">{{ campaign.briefing }}</p>
+                </div>
+              </div>
+
+              <!-- Preview Section -->
+              <div class="flex flex-col">
+                <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Preview
+                </h3>
+                <div class="bg-gray-900 rounded-lg p-4 flex-1 flex items-center justify-center">
+                  <iframe
+                    :src="campaign.assetsUrl"
+                    :title="campaign.title"
+                    class="w-full h-full min-h-[300px] rounded-lg border-0"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                  ></iframe>
+                </div>
               </div>
             </div>
 
@@ -139,49 +203,95 @@
               </div>
             </div>
 
-            <!-- Assets Section -->
+            <!-- User Guide Section -->
             <div>
               <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
                 <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
-                Assets URL
+                User Guide
               </h3>
-
-              <div v-if="!campaign.assetsUrl" class="bg-gray-900 rounded-lg p-8 text-center">
-                <svg class="w-12 h-12 text-gray-700 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-                <p class="text-sm text-gray-500">No assets URL available yet</p>
-              </div>
-
-              <div v-else class="bg-gray-900 rounded-lg p-4">
-                <div class="flex items-center gap-2">
-                  <div class="flex-1 flex items-center gap-2 bg-black border border-gray-800 rounded-lg px-3 py-2.5">
-                    <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                    </svg>
-                    <input
-                      :value="campaign.assetsUrl"
-                      readonly
-                      class="flex-1 bg-transparent text-sm text-gray-400 outline-none"
-                    >
-                  </div>
-                  <button
-                    @click="copyToClipboard(campaign.assetsUrl, campaign.id)"
-                    class="flex-shrink-0 px-4 py-2.5 bg-brand-red hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
-                  >
-                    <svg v-if="copiedAssetId === campaign.id" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                    {{ copiedAssetId === campaign.id ? 'Copied!' : 'Copy URL' }}
-                  </button>
-                </div>
+              <div class="bg-gray-900 rounded-lg p-4">
+                <h4 class="text-sm font-semibold text-white mb-4">Step by Step</h4>
+                <ol class="space-y-4">
+                  <li class="flex gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-brand-red text-white text-xs font-semibold flex items-center justify-center">1</span>
+                    <div class="flex-1">
+                      <p class="text-sm text-gray-300">Copy the Overlay URL</p>
+                    </div>
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-brand-red text-white text-xs font-semibold flex items-center justify-center">2</span>
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-white mb-2">Add Browser Source in OBS</p>
+                      <p class="text-sm text-gray-400 mb-2">With the link copied, follow these steps in OBS Studio:</p>
+                      <ul class="space-y-2 text-sm text-gray-300 ml-4 list-disc">
+                        <li>Open OBS Studio.</li>
+                        <li>In the <strong class="text-white">Sources</strong> section, usually located at the bottom of the screen, click the <strong class="text-white">add</strong> button (the <strong class="text-white">+</strong> icon).</li>
+                        <li>In the menu that appears, select the <strong class="text-white">Browser</strong> option.</li>
+                        <li>You will be prompted to create a new source. Give it a <strong class="text-white">descriptive name</strong> (e.g., "EXITLAG CAMPAIGN") and click <strong class="text-white">OK</strong>.</li>
+                        <li>In the Browser Source properties window, locate the <strong class="text-white">URL</strong> field.</li>
+                        <li><strong class="text-white">Paste the URL</strong> you copied into this field.</li>
+                        <li>Adjust the <strong class="text-white">Width and Height</strong> to match your stream resolution (320x400)</li>
+                        <li>Click <strong class="text-white">OK</strong>.</li>
+                      </ul>
+                    </div>
+                  </li>
+                  <li class="flex gap-3">
+                    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-brand-red text-white text-xs font-semibold flex items-center justify-center">3</span>
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-white mb-2">Position and Resize</p>
+                      <ul class="space-y-2 text-sm text-gray-300 ml-4 list-disc">
+                        <li>The overlay will now appear in your OBS preview area.</li>
+                        <li>You can <strong class="text-white">click and drag</strong> the corners of the source in the preview screen to resize it.</li>
+                        <li><strong class="text-white">Drag the overlay</strong> to the desired position in your scene.</li>
+                        <li>Make sure the overlay source is <strong class="text-white">above</strong> other sources (such as Game Capture, Camera, etc.) in the Sources list, so it appears on top of everything.</li>
+                      </ul>
+                    </div>
+                  </li>
+                </ol>
               </div>
             </div>
+
+            <!-- Additional Assets Section -->
+            <div>
+              <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Additional Assets
+              </h3>
+              <div v-if="!campaign.additionalAssetsUrl" class="bg-gray-900 rounded-lg p-8 text-center">
+                <svg class="w-12 h-12 text-gray-700 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <p class="text-sm text-gray-500">No additional assets available yet</p>
+              </div>
+              <div v-else class="bg-gray-900 rounded-lg p-4">
+                <a
+                  :href="campaign.additionalAssetsUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-3 bg-black border border-gray-800 rounded-lg px-4 py-3 hover:border-brand-red transition-colors group"
+                >
+                  <svg class="w-5 h-5 text-brand-red group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-white group-hover:text-brand-red transition-colors">
+                      Download Additional Assets
+                    </p>
+                    <p class="text-xs text-gray-500 mt-0.5 truncate">
+                      {{ campaign.additionalAssetsUrl }}
+                    </p>
+                  </div>
+                  <svg class="w-4 h-4 text-gray-500 group-hover:text-brand-red transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -193,13 +303,38 @@
 import { ref, computed } from 'vue'
 import type { Campaign } from '~/types/campaign'
 
+// Meta tags
+useHead({
+  title: 'ExitLab Creators HUB - Campaigns',
+  meta: [
+    {
+      name: 'description',
+      content: 'View and manage your active campaign partnerships',
+    },
+  ],
+})
+
 const copiedAssetId = ref<string | null>(null)
+const expandedCampaigns = ref<Set<string>>(new Set())
+
+// Toggle campaign expansion
+const toggleCampaign = (campaignId: string) => {
+  if (expandedCampaigns.value.has(campaignId)) {
+    expandedCampaigns.value.delete(campaignId)
+  } else {
+    expandedCampaigns.value.add(campaignId)
+  }
+}
+
+const isExpanded = (campaignId: string) => {
+  return expandedCampaigns.value.has(campaignId)
+}
 
 // Mock data - Replace with actual API call
 const campaigns = ref<Campaign[]>([
   {
     id: '1',
-    title: 'ExitLag Gaming Performance Campaign Q4 2025',
+    title: 'ExitLag SkillFest',
     status: 'active',
     briefing: `Join us in promoting ExitLag's cutting-edge gaming optimization technology! 
 
@@ -228,9 +363,46 @@ Content should be genuine, engaging, and show real gameplay improvements. We val
       'Tag @exitlag in all social media posts',
       'Submit content for approval 48 hours before publishing',
     ],
-    assetsUrl: 'https://campaign.exitlag.com/q4-2025-gaming-performance/assets',
+    assetsUrl: 'https://streamelements.com/overlay/6930899c4bb34feeda05404c/3gHRY-sdJzhi0m1gEoRyZeraUruDgvSrOiSxbYasLnAOc_v0',
+    additionalAssetsUrl: 'https://campaign.exitlag.com/q4-2025-gaming-performance/additional-assets.zip',
     createdAt: '2025-11-10',
     updatedAt: '2025-11-20',
+  },
+  {
+    id: '2',
+    title: 'ExitLag Black Friday 2025',
+    status: 'active',
+    briefing: `Join us for the biggest Black Friday campaign of the year!
+
+This campaign focuses on promoting ExitLag's exclusive Black Friday deals and special offers.
+
+Key Messages:
+- Highlight the amazing Black Friday discounts
+- Showcase the value proposition of ExitLag
+- Create urgency with limited-time offers
+- Engage with your community about the best deals
+
+Content should be exciting, engaging, and emphasize the exclusive nature of these Black Friday offers.`,
+    startDate: '2025-11-20',
+    endDate: '2025-11-30',
+    brand: 'ExitLag',
+    deliverables: [
+      '3 YouTube videos showcasing Black Friday deals',
+      '5 Instagram posts/reels with discount codes',
+      '3 TikTok videos creating urgency',
+      '2 Twitch stream integrations (minimum 3 hours each)',
+    ],
+    requirements: [
+      'Must include Black Friday discount codes',
+      'Include ExitLag branding and logo in all content',
+      'Create sense of urgency and exclusivity',
+      'Tag @exitlag in all social media posts',
+      'Submit content for approval 24 hours before publishing',
+    ],
+    assetsUrl: 'https://streamelements.com/overlay/6930b34680cf59ada0d8bafb/3gHRY-sdJzhi0m1gEoRyZeraUruDgvSrOiSxbYasLnAOc_v0',
+    additionalAssetsUrl: 'https://campaign.exitlag.com/black-friday-2025/additional-assets.zip',
+    createdAt: '2025-11-15',
+    updatedAt: '2025-11-18',
   },
 ])
 
@@ -280,13 +452,3 @@ const copyToClipboard = async (text: string, id: string) => {
   }
 }
 </script>
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
-
-const copyToClipboard = async (text: string, id: string) => {
