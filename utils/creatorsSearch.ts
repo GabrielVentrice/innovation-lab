@@ -130,6 +130,7 @@ async function searchYouTubeByName(name: string, { game, language, region, maxRe
   searchUrl.searchParams.set("type", "channel")
   searchUrl.searchParams.set("q", q)
   searchUrl.searchParams.set("maxResults", String(maxResults))
+  searchUrl.searchParams.set("order", "viewCount")
   searchUrl.searchParams.set("key", YOUTUBE_API_KEY)
   if (region) searchUrl.searchParams.set("regionCode", region)
 
@@ -718,31 +719,19 @@ export async function searchCreators(options: SearchOptions): Promise<Creator[]>
     tiktok: CREATOR_SOURCES_CONFIG.tiktok
   }
 
-  // 1) BUSCA PRIMÁRIA POR JOGO NAS 3 FONTES
-  const promisesPrimary = []
-
+  // 1) BUSCA PRIMÁRIA APENAS NO YOUTUBE
+  let primaryAccounts: CreatorAccount[] = []
+  
   if (sources.youtube) {
-    promisesPrimary.push(searchYouTubeByGame({ game, language, region, maxResults: 25 }))
-  } else {
-    promisesPrimary.push(Promise.resolve([]))
+    primaryAccounts = await searchYouTubeByGame({ game, language, region, maxResults: 25 })
   }
 
-  if (sources.twitch) {
-    promisesPrimary.push(searchTwitchByGame({ game, language, maxResults: 25 }))
-  } else {
-    promisesPrimary.push(Promise.resolve([]))
+  // Se não tiver YouTube ativo ou não encontrou nada, retorna vazio
+  if (!primaryAccounts.length) {
+    return []
   }
 
-  if (sources.tiktok) {
-    promisesPrimary.push(searchTikTokByGame({ game, language, region, maxResults: 25 }))
-  } else {
-    promisesPrimary.push(Promise.resolve([]))
-  }
-
-  const [ytPrimary, twPrimary, ttPrimary] = await Promise.all(promisesPrimary)
-  let primaryAccounts = [...ytPrimary, ...twPrimary, ...ttPrimary]
-
-  // 2) CROSS-SEARCH: CADA FONTE PROCURA AS OUTRAS PELOS NOMES
+  // 2) CROSS-SEARCH: USA OS RESULTADOS DO YOUTUBE PARA BUSCAR NAS OUTRAS PLATAFORMAS
   const crossAccounts = await crossSearchAllPlatforms(primaryAccounts, {
     game,
     language,
