@@ -31,7 +31,7 @@
       <!-- Title Section -->
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-white">
-          Exitlab Creators Hub
+          ExitLab Creators Hub
         </h1>
         <p class="mt-1 text-sm text-gray-500">
           Find and connect with content creators
@@ -41,7 +41,7 @@
       <!-- Games Journey Card -->
       <div class="mb-6 bg-black rounded-lg border border-gray-800 p-6">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-bold text-white">GAMES JOURNEY</h2>
+          <h2 class="text-xl font-bold text-white">TRENDS</h2>
           <div class="flex items-center gap-2 text-xs text-gray-500">
             <span>Timeline by:</span>
             <div class="flex gap-1">

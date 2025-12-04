@@ -54,6 +54,13 @@ function usernamesLookSimilar(a: string, b: string): boolean {
   const nb = normalizeString(b)
   if (!na || !nb) return false
   if (na === nb) return true
+  
+  // Calculate the difference in length between the two usernames
+  const lengthDiff = Math.abs(na.length - nb.length)
+  
+  // If the difference is 4 or more characters, they are not similar
+  if (lengthDiff >= 4) return false
+  
   if (na.includes(nb) || nb.includes(na)) return true
   return false
 }
@@ -322,7 +329,7 @@ async function enrichTwitchChannelData(channelIds: string[]): Promise<Map<string
   const usersData = await usersRes.json()
   const enrichmentMap = new Map<string, { followers: number, avgViews: number }>()
 
-  // Get follower count and view count for each channel
+  // Get follower count and average views for each channel
   for (const user of usersData.data || []) {
     const followersUrl = new URL("https://api.twitch.tv/helix/channels/followers")
     followersUrl.searchParams.set("broadcaster_id", user.id)
@@ -340,13 +347,56 @@ async function enrichTwitchChannelData(channelIds: string[]): Promise<Map<string
       followers = followersData.total || 0
     }
 
+    // Calculate average views from recent videos
+    const avgViews = await fetchTwitchAvgViews(user.id)
+
     enrichmentMap.set(user.id, {
       followers,
-      avgViews: user.view_count || 0
+      avgViews: avgViews || 0
     })
   }
 
   return enrichmentMap
+}
+
+async function fetchTwitchAvgViews(userId: string): Promise<number | null> {
+  if (!TWITCH_CLIENT_ID || !TWITCH_APP_TOKEN) return null
+
+  try {
+    const videosUrl = new URL("https://api.twitch.tv/helix/videos")
+    videosUrl.searchParams.set("user_id", userId)
+    videosUrl.searchParams.set("first", "10")
+    videosUrl.searchParams.set("type", "archive")
+
+    const videosRes = await fetch(videosUrl.toString(), {
+      headers: {
+        "Client-ID": TWITCH_CLIENT_ID,
+        "Authorization": `Bearer ${TWITCH_APP_TOKEN}`
+      }
+    })
+
+    if (!videosRes.ok) {
+      console.error("[Twitch videos] Erro:", videosRes.status, await videosRes.text())
+      return null
+    }
+
+    const videosData = await videosRes.json()
+    const videos = videosData.data || []
+
+    if (!videos.length) return null
+
+    // Calculate average view count
+    const totalViews = videos.reduce((sum: number, video: any) => {
+      const viewCount = video.view_count ? Number(video.view_count) : 0
+      return sum + viewCount
+    }, 0)
+
+    const avgViews = Math.round(totalViews / videos.length)
+    return avgViews
+  } catch (err) {
+    console.error("[Twitch avgViews] Erro:", err)
+    return null
+  }
 }
 
 async function searchTwitchByGame({ game, language, maxResults = 5 }: { game: string, language?: string, maxResults?: number }): Promise<CreatorAccount[]> {
@@ -883,7 +933,7 @@ export async function searchCreators(options: SearchOptions): Promise<Creator[]>
     game, 
     language, 
     region, 
-    maxResults: 50 
+    maxResults: 10
   })
 
   // Se não encontrou nada no YouTube, retorna vazio
