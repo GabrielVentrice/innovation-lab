@@ -16,13 +16,13 @@
               to="/register"
               class="px-4 py-2 bg-brand-red hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              Cadastrar Criador
+              Register Creator
             </NuxtLink>
             <NuxtLink
               to="/"
               class="text-sm text-gray-400 hover:text-white transition-colors"
             >
-              Buscar Creators
+              Search Creators
             </NuxtLink>
           </div>
         </div>
@@ -33,26 +33,26 @@
     <main class="max-w-[1400px] mx-auto px-6 lg:px-8 py-6">
       <!-- Title Section -->
       <div class="mb-6">
-        <h1 class="text-2xl font-bold text-white">Creators Cadastrados</h1>
+        <h1 class="text-2xl font-bold text-white">Registered Creators</h1>
         <p class="mt-1 text-sm text-gray-500">
-          Lista de todos os criadores cadastrados no sistema
+          List of all creators registered in the system
         </p>
       </div>
 
       <!-- Stats -->
       <div v-if="creators.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div class="bg-black rounded-lg border border-gray-800 p-4">
-          <div class="text-sm text-gray-500">Total de Creators</div>
+          <div class="text-sm text-gray-500">Total Creators</div>
           <div class="text-2xl font-bold text-white mt-1">{{ creators.length }}</div>
         </div>
         <div class="bg-black rounded-lg border border-gray-800 p-4">
-          <div class="text-sm text-gray-500">Com Redes Sociais</div>
+          <div class="text-sm text-gray-500">With Social Media</div>
           <div class="text-2xl font-bold text-white mt-1">
             {{ creatorsWithSocials }}
           </div>
         </div>
         <div class="bg-black rounded-lg border border-gray-800 p-4">
-          <div class="text-sm text-gray-500">Jogo Mais Popular</div>
+          <div class="text-sm text-gray-500">Most Popular Game</div>
           <div class="text-2xl font-bold text-white mt-1">
             {{ mostPopularGame || "-" }}
           </div>
@@ -79,15 +79,15 @@
             />
           </svg>
         </div>
-        <h2 class="text-xl font-bold text-white mb-2">Nenhum criador cadastrado</h2>
+        <h2 class="text-xl font-bold text-white mb-2">No creators registered</h2>
         <p class="text-gray-500 mb-8 max-w-md mx-auto">
-          Comece cadastrando seu primeiro criador de conteúdo
+          Start by registering your first content creator
         </p>
         <NuxtLink
           to="/register"
           class="inline-flex px-6 py-3 bg-brand-red hover:bg-primary-600 text-white font-medium rounded-lg transition-colors"
         >
-          Cadastrar Primeiro Criador
+          Register First Creator
         </NuxtLink>
       </div>
 
@@ -114,18 +114,18 @@
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <div class="text-xs text-gray-500 mb-1">Telefone</div>
+                  <div class="text-xs text-gray-500 mb-1">Phone</div>
                   <div class="text-sm text-white">{{ creator.phone }}</div>
                 </div>
                 <div>
-                  <div class="text-xs text-gray-500 mb-1">Jogo Principal</div>
+                  <div class="text-xs text-gray-500 mb-1">Main Game</div>
                   <div class="text-sm text-white">{{ creator.mainGame }}</div>
                 </div>
               </div>
 
               <!-- Social Networks -->
               <div v-if="creator.socials && Object.keys(creator.socials).length > 0">
-                <div class="text-xs text-gray-500 mb-2">Redes Sociais</div>
+                <div class="text-xs text-gray-500 mb-2">Social Networks</div>
                 <div class="flex flex-wrap gap-2">
                   <a
                     v-for="(url, platform) in creator.socials"
@@ -229,20 +229,20 @@
                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                   />
                 </svg>
-                Editar
+                Edit
               </NuxtLink>
               <button
                 @click="deleteCreator(creator.id)"
                 class="px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 bg-red-900/20 hover:bg-red-900/30 border border-red-800 rounded-lg transition-colors"
               >
-                Excluir
+                Delete
               </button>
             </div>
           </div>
 
           <div class="mt-4 pt-4 border-t border-gray-800 text-xs text-gray-500">
-            Cadastrado em:
-            {{ new Date(creator.createdAt).toLocaleString("pt-BR") }}
+            Registered on:
+            {{ new Date(creator.createdAt).toLocaleString("en-US") }}
           </div>
         </div>
       </div>
@@ -255,11 +255,11 @@ import { ref, computed, onMounted } from "vue";
 
 // Meta tags
 useHead({
-  title: "Creators Cadastrados - ExitLag",
+  title: "Registered Creators - ExitLag",
   meta: [
     {
       name: "description",
-      content: "Lista de todos os criadores cadastrados no sistema",
+      content: "List of all creators registered in the system",
     },
   ],
 });
@@ -303,21 +303,21 @@ const loadCreators = () => {
       creators.value = JSON.parse(stored);
     }
   } catch (error) {
-    console.error("Erro ao carregar creators:", error);
+    console.error("Error loading creators:", error);
     creators.value = [];
   }
 };
 
 // Delete creator
 const deleteCreator = (id: string) => {
-  if (confirm("Tem certeza que deseja excluir este criador?")) {
+  if (confirm("Are you sure you want to delete this creator?")) {
     try {
       const updated = creators.value.filter((c) => c.id !== id);
       localStorage.setItem("creators", JSON.stringify(updated));
       creators.value = updated;
     } catch (error) {
-      console.error("Erro ao excluir creator:", error);
-      alert("Erro ao excluir criador. Tente novamente.");
+      console.error("Error deleting creator:", error);
+      alert("Error deleting creator. Please try again.");
     }
   }
 };

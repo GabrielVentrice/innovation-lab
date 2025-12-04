@@ -15,7 +15,7 @@
             to="/"
             class="text-sm text-gray-400 hover:text-white transition-colors"
           >
-            Voltar ao Dashboard
+            Back to Dashboard
           </NuxtLink>
         </div>
       </div>
@@ -25,9 +25,9 @@
     <main class="max-w-[800px] mx-auto px-6 lg:px-8 py-8">
       <!-- Title Section -->
       <div class="mb-8">
-        <h1 class="text-2xl font-bold text-white">Redes Sociais</h1>
+        <h1 class="text-2xl font-bold text-white">Social Networks</h1>
         <p class="mt-1 text-sm text-gray-500">
-          Adicione as redes sociais do criador (opcional)
+          Add the creator's social networks (optional)
         </p>
       </div>
 
@@ -174,10 +174,10 @@
             </svg>
             <div>
               <p class="text-sm font-medium text-green-400">
-                Redes sociais salvas com sucesso!
+                Social networks saved successfully!
               </p>
               <p class="text-xs text-green-500/80 mt-1">
-                O criador foi cadastrado completamente no sistema.
+                The creator has been fully registered in the system.
               </p>
             </div>
           </div>
@@ -201,7 +201,7 @@
               />
             </svg>
             <div>
-              <p class="text-sm font-medium text-red-400">Erro ao salvar</p>
+              <p class="text-sm font-medium text-red-400">Save Error</p>
               <p class="text-xs text-red-500/80 mt-1">
                 {{ submitError }}
               </p>
@@ -236,7 +236,7 @@
                 ></path>
               </svg>
               <span>{{
-                loading ? "Salvando..." : "Finalizar Cadastro"
+                loading ? "Saving..." : "Complete Registration"
               }}</span>
             </button>
             <button
@@ -244,13 +244,13 @@
               @click="skipSocials"
               class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-lg transition-colors flex items-center justify-center"
             >
-              Pular
+              Skip
             </button>
             <NuxtLink
               to="/register"
               class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-lg transition-colors flex items-center justify-center"
             >
-              Voltar
+              Back
             </NuxtLink>
           </div>
         </form>
@@ -264,11 +264,11 @@ import { ref, reactive, onMounted } from "vue";
 
 // Meta tags
 useHead({
-  title: "Redes Sociais - ExitLag",
+  title: "Social Networks - ExitLag",
   meta: [
     {
       name: "description",
-      content: "Adicione as redes sociais do criador",
+      content: "Add the creator's social networks",
     },
   ],
 });
@@ -294,7 +294,7 @@ const submitError = ref("");
 onMounted(() => {
   const id = route.query.id as string;
   if (!id) {
-    // Se não houver ID, redirecionar para registro
+    // If no ID, redirect to registration
     navigateTo("/register");
     return;
   }
@@ -311,21 +311,21 @@ const handleSubmit = async () => {
   try {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Buscar creators do localStorage
+    // Fetch creators from localStorage
     const existingCreators = JSON.parse(
       localStorage.getItem("creators") || "[]"
     );
 
-    // Encontrar o criador pelo ID
+    // Find the creator by ID
     const creatorIndex = existingCreators.findIndex(
       (c: any) => c.id === creatorId.value
     );
 
     if (creatorIndex === -1) {
-      throw new Error("Criador não encontrado");
+      throw new Error("Creator not found");
     }
 
-    // Filtrar apenas redes sociais preenchidas
+    // Filter only filled social networks
     const filledSocials: Record<string, string> = {};
     Object.entries(socials).forEach(([key, value]) => {
       if (value && value.trim()) {
@@ -333,19 +333,19 @@ const handleSubmit = async () => {
       }
     });
 
-    // Atualizar o criador com as redes sociais
+    // Update the creator with social networks
     existingCreators[creatorIndex].socials = filledSocials;
     existingCreators[creatorIndex].updatedAt = new Date().toISOString();
 
-    // Salvar de volta no localStorage
+    // Save back to localStorage
     localStorage.setItem("creators", JSON.stringify(existingCreators));
 
-    // Limpar ID temporário
+    // Clear temporary ID
     localStorage.removeItem("currentCreatorId");
 
     success.value = true;
 
-    // Redirecionar para página de campaigns após 2 segundos
+    // Redirect to campaigns page after 2 seconds
     setTimeout(() => {
       navigateTo("/campaigns");
     }, 2000);
@@ -353,7 +353,7 @@ const handleSubmit = async () => {
     submitError.value =
       error instanceof Error
         ? error.message
-        : "Erro ao salvar redes sociais. Tente novamente.";
+        : "Error saving social networks. Please try again.";
   } finally {
     loading.value = false;
   }
@@ -362,13 +362,13 @@ const handleSubmit = async () => {
 // Skip socials
 const skipSocials = async () => {
   try {
-    // Limpar ID temporário
+    // Clear temporary ID
     localStorage.removeItem("currentCreatorId");
 
-    // Redirecionar para página de campaigns
+    // Redirect to campaigns page
     await navigateTo("/campaigns");
   } catch (error) {
-    submitError.value = "Erro ao pular etapa. Tente novamente.";
+    submitError.value = "Error skipping step. Please try again.";
   }
 };
 </script>

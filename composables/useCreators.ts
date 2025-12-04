@@ -14,7 +14,7 @@ export const useCreators = () => {
   const filters = ref<SearchFilters>({
     game: '',
     language: undefined,
-    region: undefined,
+    region: 'BR',
     viewMode: 'full',
   })
 
@@ -48,6 +48,11 @@ export const useCreators = () => {
       return
     }
 
+    if (!filters.value.region) {
+      error.value = 'Region is required'
+      return
+    }
+
     loading.value = true
     error.value = null
     hasSearched.value = true
@@ -74,7 +79,7 @@ export const useCreators = () => {
     filters.value = {
       game: '',
       language: undefined,
-      region: undefined,
+      region: 'BR',
       viewMode: 'full',
     }
     error.value = null

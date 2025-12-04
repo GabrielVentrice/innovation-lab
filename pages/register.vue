@@ -16,13 +16,13 @@
               to="/creators"
               class="text-sm text-gray-400 hover:text-white transition-colors"
             >
-              Ver Creators
+              View Creators
             </NuxtLink>
             <NuxtLink
               to="/"
               class="text-sm text-gray-400 hover:text-white transition-colors"
             >
-              Voltar ao Dashboard
+              Back to Dashboard
             </NuxtLink>
           </div>
         </div>
@@ -33,29 +33,29 @@
     <main class="max-w-[800px] mx-auto px-6 lg:px-8 py-8">
       <!-- Title Section -->
       <div class="mb-8">
-        <h1 class="text-2xl font-bold text-white">Cadastro de Creators</h1>
+        <h1 class="text-2xl font-bold text-white">Creator Registration</h1>
         <p class="mt-1 text-sm text-gray-500">
-          Preencha os dados abaixo para cadastrar um novo criador
+          Fill in the details below to register a new creator
         </p>
       </div>
 
       <!-- Form Card -->
       <div class="bg-black rounded-lg border border-gray-800 p-6 lg:p-8">
         <form @submit.prevent="handleSubmit" class="space-y-6">
-          <!-- Nome -->
+          <!-- Name -->
           <div>
             <label
               for="name"
               class="block text-sm font-medium text-gray-300 mb-2"
             >
-              Nome <span class="text-brand-red">*</span>
+              Name <span class="text-brand-red">*</span>
             </label>
             <input
               id="name"
               v-model="form.name"
               type="text"
               required
-              placeholder="Digite o nome completo"
+              placeholder="Enter full name"
               class="w-full px-4 py-2.5 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-red focus:border-transparent transition-all"
             />
             <p v-if="errors.name" class="mt-1.5 text-sm text-red-500">
@@ -84,13 +84,13 @@
             </p>
           </div>
 
-          <!-- Telefone -->
+          <!-- Phone -->
           <div>
             <label
               for="phone"
               class="block text-sm font-medium text-gray-300 mb-2"
             >
-              Telefone <span class="text-brand-red">*</span>
+              Phone <span class="text-brand-red">*</span>
             </label>
             <input
               id="phone"
@@ -107,20 +107,20 @@
             </p>
           </div>
 
-          <!-- Senha -->
+          <!-- Password -->
           <div>
             <label
               for="password"
               class="block text-sm font-medium text-gray-300 mb-2"
             >
-              Senha <span class="text-brand-red">*</span>
+              Password <span class="text-brand-red">*</span>
             </label>
             <input
               id="password"
               v-model="form.password"
               type="password"
               required
-              placeholder="Mínimo 8 caracteres"
+              placeholder="Minimum 8 characters"
               class="w-full px-4 py-2.5 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-red focus:border-transparent transition-all"
             />
             <p v-if="errors.password" class="mt-1.5 text-sm text-red-500">
@@ -128,20 +128,20 @@
             </p>
           </div>
 
-          <!-- Jogo Principal -->
+          <!-- Main Game -->
           <div>
             <label
               for="mainGame"
               class="block text-sm font-medium text-gray-300 mb-2"
             >
-              Jogo Principal <span class="text-brand-red">*</span>
+              Main Game <span class="text-brand-red">*</span>
             </label>
             <input
               id="mainGame"
               v-model="form.mainGame"
               type="text"
               required
-              placeholder="Digite o nome do jogo principal"
+              placeholder="Enter the main game name"
               class="w-full px-4 py-2.5 bg-gray-900 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-red focus:border-transparent transition-all"
             />
             <p v-if="errors.mainGame" class="mt-1.5 text-sm text-red-500">
@@ -169,10 +169,10 @@
             </svg>
             <div>
               <p class="text-sm font-medium text-green-400">
-                Criador cadastrado com sucesso!
+                Creator registered successfully!
               </p>
               <p class="text-xs text-green-500/80 mt-1">
-                Os dados foram salvos e o criador está disponível no sistema.
+                The data has been saved and the creator is now available in the system.
               </p>
             </div>
           </div>
@@ -196,7 +196,7 @@
               />
             </svg>
             <div>
-              <p class="text-sm font-medium text-red-400">Erro ao cadastrar</p>
+              <p class="text-sm font-medium text-red-400">Registration Error</p>
               <p class="text-xs text-red-500/80 mt-1">
                 {{ submitError }}
               </p>
@@ -231,14 +231,14 @@
                 ></path>
               </svg>
               <span>{{
-                loading ? "Cadastrando..." : "Cadastrar Criador"
+                loading ? "Registering..." : "Register Creator"
               }}</span>
             </button>
             <NuxtLink
               to="/"
               class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-lg transition-colors flex items-center justify-center"
             >
-              Cancelar
+              Cancel
             </NuxtLink>
           </div>
         </form>
@@ -252,11 +252,11 @@ import { ref, reactive } from "vue";
 
 // Meta tags
 useHead({
-  title: "Cadastro de Criador - ExitLag",
+  title: "Creator Registration - ExitLag",
   meta: [
     {
       name: "description",
-      content: "Cadastre novos criadores de conteúdo no sistema",
+      content: "Register new content creators in the system",
     },
   ],
 });
@@ -285,16 +285,16 @@ const submitError = ref("");
 // Phone mask function
 const formatPhone = (event: Event) => {
   const input = event.target as HTMLInputElement;
-  let value = input.value.replace(/\D/g, ""); // Remove tudo que não é dígito
+  let value = input.value.replace(/\D/g, ""); // Remove everything that is not a digit
 
-  // Limita a 11 dígitos (máximo para celular brasileiro)
+  // Limit to 11 digits (maximum for Brazilian mobile)
   if (value.length > 11) {
     value = value.slice(0, 11);
   }
 
-  // Aplica a máscara conforme o tamanho
+  // Apply mask according to length
   if (value.length <= 10) {
-    // Telefone fixo: (00) 0000-0000
+    // Landline: (00) 0000-0000
     if (value.length <= 6) {
       value = value.replace(/^(\d{0,2})(\d{0,4})/, (match, p1, p2) => {
         if (p2) return `(${p1}) ${p2}`;
@@ -308,7 +308,7 @@ const formatPhone = (event: Event) => {
       });
     }
   } else {
-    // Celular: (00) 00000-0000
+    // Mobile: (00) 00000-0000
     value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, (match, p1, p2, p3) => {
       if (p3) return `(${p1}) ${p2}-${p3}`;
       return `(${p1}) ${p2}`;
@@ -329,50 +329,50 @@ const validateForm = (): boolean => {
 
   // Name validation
   if (!form.name.trim()) {
-    errors.name = "Nome é obrigatório";
+    errors.name = "Name is required";
     isValid = false;
   } else if (form.name.trim().length < 3) {
-    errors.name = "Nome deve ter pelo menos 3 caracteres";
+    errors.name = "Name must be at least 3 characters";
     isValid = false;
   }
 
   // Email validation
   if (!form.email.trim()) {
-    errors.email = "E-mail é obrigatório";
+    errors.email = "Email is required";
     isValid = false;
   } else {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) {
-      errors.email = "E-mail inválido";
+      errors.email = "Invalid email";
       isValid = false;
     }
   }
 
   // Phone validation
   if (!form.phone.trim()) {
-    errors.phone = "Telefone é obrigatório";
+    errors.phone = "Phone is required";
     isValid = false;
   } else {
-    // Remove caracteres não numéricos para validar
+    // Remove non-numeric characters for validation
     const phoneDigits = form.phone.replace(/\D/g, "");
     if (phoneDigits.length < 10 || phoneDigits.length > 11) {
-      errors.phone = "Telefone deve ter 10 ou 11 dígitos";
+      errors.phone = "Phone must have 10 or 11 digits";
       isValid = false;
     }
   }
 
   // Password validation
   if (!form.password) {
-    errors.password = "Senha é obrigatória";
+    errors.password = "Password is required";
     isValid = false;
   } else if (form.password.length < 8) {
-    errors.password = "Senha deve ter pelo menos 8 caracteres";
+    errors.password = "Password must be at least 8 characters";
     isValid = false;
   }
 
   // Main game validation
   if (!form.mainGame) {
-    errors.mainGame = "Jogo principal é obrigatório";
+    errors.mainGame = "Main game is required";
     isValid = false;
   }
 
@@ -391,43 +391,43 @@ const handleSubmit = async () => {
   loading.value = true;
 
   try {
-    // Simular chamada de API
+    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Gerar ID único para o criador
+    // Generate unique ID for the creator
     const creatorId = `creator_${Date.now()}_${Math.random()
       .toString(36)
       .slice(2, 11)}`;
 
-    // Preparar dados para salvar
+    // Prepare data to save
     const creatorData = {
       id: creatorId,
       name: form.name,
       email: form.email,
       phone: form.phone,
-      password: form.password, // Em produção, isso deveria ser hash
+      password: form.password, // In production, this should be hashed
       mainGame: form.mainGame,
-      socials: {}, // Será preenchido na próxima página
+      socials: {}, // Will be filled on the next page
       createdAt: new Date().toISOString(),
     };
 
-    // Salvar no localStorage
+    // Save to localStorage
     const existingCreators = JSON.parse(
       localStorage.getItem("creators") || "[]"
     );
     existingCreators.push(creatorData);
     localStorage.setItem("creators", JSON.stringify(existingCreators));
 
-    // Salvar dados temporários para a próxima página
+    // Save temporary data for next page
     localStorage.setItem("currentCreatorId", creatorId);
 
-    // Redirecionar para página de redes sociais
+    // Redirect to social networks page
     await navigateTo(`/register-socials?id=${creatorId}`);
   } catch (error) {
     submitError.value =
       error instanceof Error
         ? error.message
-        : "Erro ao cadastrar criador. Tente novamente.";
+        : "Error registering creator. Please try again.";
     loading.value = false;
   }
 };

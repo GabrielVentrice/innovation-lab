@@ -34,17 +34,19 @@
         <!-- Region Select -->
         <div class="flex-1 min-w-[180px]">
           <label class="block text-sm font-medium text-white mb-1.5">
-            Region
+            Region *
           </label>
           <select
             v-model="localFilters.region"
             class="w-full px-4 py-2.5 border border-gray-800 rounded-lg focus:ring-2 focus:ring-brand-red focus:border-transparent transition-all bg-gray-900 text-white"
+            :class="{ 'border-brand-red': errors.region }"
+            required
           >
-            <option :value="undefined">All regions</option>
             <option v-for="option in regionOptions" :key="option.value" :value="option.value">
               {{ option.label }}
             </option>
           </select>
+          <p v-if="errors.region" class="mt-1 text-sm text-brand-red">{{ errors.region }}</p>
         </div>
 
         <!-- View Mode Toggle -->
@@ -126,13 +128,18 @@ watch(() => props.filters, (newFilters) => {
 const regionOptions = [
   { value: 'BR', label: 'Brazil' },
   { value: 'US', label: 'United States' },
-  { value: 'UK', label: 'United Kingdom' },
-  { value: 'EU', label: 'Europe' },
+  { value: 'GB', label: 'United Kingdom' },
   { value: 'FR', label: 'France' },
   { value: 'DE', label: 'Germany' },
   { value: 'ES', label: 'Spain' },
+  { value: 'PT', label: 'Portugal' },
+  { value: 'IT', label: 'Italy' },
+  { value: 'MX', label: 'Mexico' },
+  { value: 'AR', label: 'Argentina' },
   { value: 'JP', label: 'Japan' },
   { value: 'KR', label: 'South Korea' },
+  { value: 'CA', label: 'Canada' },
+  { value: 'AU', label: 'Australia' },
 ]
 
 const viewModes = [
@@ -156,6 +163,13 @@ const handleSubmit = () => {
 
   if (!localFilters.value.game || localFilters.value.game.trim() === '') {
     errors.value.game = 'Game is required'
+  }
+
+  if (!localFilters.value.region || localFilters.value.region.trim() === '') {
+    errors.value.region = 'Region is required'
+  }
+
+  if (Object.keys(errors.value).length > 0) {
     return
   }
 
@@ -167,7 +181,7 @@ const handleReset = () => {
   localFilters.value = {
     game: '',
     language: undefined,
-    region: undefined,
+    region: 'BR',
     viewMode: 'full',
   }
   errors.value = {}

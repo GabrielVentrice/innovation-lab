@@ -3,7 +3,7 @@ import type { Creator, SearchOptions, CreatorAccount } from '~/types/creator'
 // -------------------------------------------------------------
 // 0. CONFIGURAÇÕES DE AUTENTICAÇÃO
 // -------------------------------------------------------------
-const YOUTUBE_API_KEY = "AIzaSyCqNPgSafjt7dVwB7F0BhhZEREAZjlwjHs"
+const YOUTUBE_API_KEY = "AIzaSyAdmjaagBNkc6j3dgTIxCl26NSyS9qWyEA"
 const TWITCH_CLIENT_ID = 'lk2fxmv06r22w5ko03pt18i92i6g6j'
 const TWITCH_APP_TOKEN = '28lrwi54tznbx7boforv08qojclv80'
 const TIKTOK_ACCESS_TOKEN = "" // deixe vazio se ainda não tiver
@@ -154,6 +154,62 @@ async function searchYouTubeByName(name: string, { game, language, region, maxRe
   return fetchYouTubeChannelsByIds(channelIds, { game, language })
 }
 
+async function fetchYouTubeRecentVideosAvgViews(channelId: string): Promise<number | null> {
+  if (!YOUTUBE_API_KEY) return null
+
+  try {
+    // Search for recent videos from this channel (no date restriction)
+    const searchUrl = new URL("https://www.googleapis.com/youtube/v3/search")
+    searchUrl.searchParams.set("part", "id")
+    searchUrl.searchParams.set("channelId", channelId)
+    searchUrl.searchParams.set("type", "video")
+    searchUrl.searchParams.set("order", "date")
+    searchUrl.searchParams.set("maxResults", "50")
+    searchUrl.searchParams.set("key", YOUTUBE_API_KEY)
+
+    const searchRes = await fetch(searchUrl.toString())
+    if (!searchRes.ok) {
+      console.error("[YouTube video search] Erro:", searchRes.status, await searchRes.text())
+      return null
+    }
+    const searchData = await searchRes.json()
+
+    const videoIds = (searchData.items || [])
+      .map((item: any) => item.id && item.id.videoId)
+      .filter(Boolean)
+
+    if (!videoIds.length) return null
+
+    // Get video statistics
+    const videosUrl = new URL("https://www.googleapis.com/youtube/v3/videos")
+    videosUrl.searchParams.set("part", "statistics")
+    videosUrl.searchParams.set("id", videoIds.join(","))
+    videosUrl.searchParams.set("key", YOUTUBE_API_KEY)
+
+    const videosRes = await fetch(videosUrl.toString())
+    if (!videosRes.ok) {
+      console.error("[YouTube videos] Erro:", videosRes.status, await videosRes.text())
+      return null
+    }
+    const videosData = await videosRes.json()
+
+    // Calculate average views
+    const videos = videosData.items || []
+    if (!videos.length) return null
+
+    const totalViews = videos.reduce((sum: number, video: any) => {
+      const viewCount = video.statistics?.viewCount ? Number(video.statistics.viewCount) : 0
+      return sum + viewCount
+    }, 0)
+
+    const avgViews = Math.round(totalViews / videos.length)
+    return avgViews
+  } catch (err) {
+    console.error("[YouTube avgViews] Erro:", err)
+    return null
+  }
+}
+
 async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { game: string, language?: string }): Promise<CreatorAccount[]> {
   const channelsUrl = new URL("https://www.googleapis.com/youtube/v3/channels")
   channelsUrl.searchParams.set("part", "brandingSettings,snippet,statistics,status")
@@ -168,7 +224,9 @@ async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { ga
   const channelsData = await channelsRes.json()
 
   console.log('fetchYouTubeChannelsByIds', channelsData)
-  return (channelsData.items || []).map((ch: any) => {
+  
+  // Process channels and fetch avg views in parallel
+  const channelPromises = (channelsData.items || []).map(async (ch: any) => {
     const snippet = ch.snippet || {}
     const stats = ch.statistics || {}
     const brandingSettings = ch.brandingSettings || {}
@@ -215,6 +273,9 @@ async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { ga
     // Combine all links and remove duplicates
     const allLinks = Array.from(new Set([...links, ...brandingLinks, ...emailLinks]))
 
+    // Fetch average views from recent videos (last 30 days)
+    const avgViews = await fetchYouTubeRecentVideosAvgViews(ch.id)
+
     return {
       platform: "youtube" as const,
       externalId: ch.id,
@@ -224,13 +285,15 @@ async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { ga
       country: snippet.country || null,
       language: language || null,
       followers: stats.subscriberCount ? Number(stats.subscriberCount) : null,
-      avgViews: null,
+      avgViews,
       gameTags: [game].filter(Boolean),
       avatarUrl: snippet.thumbnails?.default?.url || null,
       bio,
       links: allLinks
     }
   })
+
+  return Promise.all(channelPromises)
 }
 
 // -------------------------------------------------------------
@@ -748,53 +811,160 @@ export async function searchCreators(options: SearchOptions): Promise<Creator[]>
     throw new Error("Parâmetro 'game' é obrigatório.")
   }
 
-  // Define quais fontes usar - todas as plataformas ativas
-  const sources = {
-    youtube: CREATOR_SOURCES_CONFIG.youtube,
-    twitch: CREATOR_SOURCES_CONFIG.twitch,
-    tiktok: CREATOR_SOURCES_CONFIG.tiktok
+  if (!region) {
+    throw new Error("Parâmetro 'region' é obrigatório.")
   }
 
-  // 1) BUSCA PRIMÁRIA APENAS NO YOUTUBE
-  let primaryAccounts: CreatorAccount[] = []
-  
-  if (sources.youtube) {
-    primaryAccounts = await searchYouTubeByGame({ game, language, region, maxResults: 5 })
-  }
+  // 1) BUSCA PRIMÁRIA APENAS NO YOUTUBE COM FILTRO DE REGIÃO OBRIGATÓRIO
+  const youtubeAccounts = await searchYouTubeByGame({ 
+    game, 
+    language, 
+    region, 
+    maxResults: 50 
+  })
 
-  // Se não tiver YouTube ativo ou não encontrou nada, retorna vazio
-  if (!primaryAccounts.length) {
+  // Se não encontrou nada no YouTube, retorna vazio
+  if (!youtubeAccounts.length) {
     return []
   }
 
-  // 2) CROSS-SEARCH: USA OS RESULTADOS DO YOUTUBE PARA BUSCAR NAS OUTRAS PLATAFORMAS
-  const crossAccounts = await crossSearchAllPlatforms(primaryAccounts, {
-    game,
-    language,
-    region,
-    sources
+  // 2) FILTRAR: GARANTIR QUE APENAS CANAIS DA REGIÃO SOLICITADA SEJAM RETORNADOS
+  const filteredYoutubeAccounts = youtubeAccounts.filter(acc => {
+    // Se o canal tem country definido, deve ser da região solicitada
+    if (acc.country) {
+      return acc.country.toUpperCase() === region.toUpperCase()
+    }
+    // Se não tem country, mantém (a API do YouTube já filtrou)
+    return true
   })
 
-  let allAccounts = [...primaryAccounts, ...crossAccounts]
-
-  // 3) ENRIQUECER COM TWITCH USANDO LINKS NAS BIOS
-  if (sources.twitch) {
-    const twitchFromLinks = await enrichWithTwitchFromLinks(allAccounts, { language })
-    allAccounts = [...allAccounts, ...twitchFromLinks]
+  if (!filteredYoutubeAccounts.length) {
+    return []
   }
 
-  // 4) TIRAR DUPLICADOS POR (platform+externalId)
-  const dedupMap = new Map()
-  for (const acc of allAccounts) {
-    const key = `${acc.platform}:${acc.externalId}`
-    if (!dedupMap.has(key)) {
-      dedupMap.set(key, acc)
+  // 3) PARA CADA CANAL DO YOUTUBE, VERIFICAR SE TEM TWITCH
+  const youtubeToTwitchMap = new Map<string, CreatorAccount>() // youtubeChannelId -> twitchAccount
+  
+  if (TWITCH_CLIENT_ID && TWITCH_APP_TOKEN) {
+    const twitchRegex = /twitch\.tv\/([A-Za-z0-9_]+)/i
+    const twitchLoginsFromLinks = new Map<string, string[]>() // login -> [youtubeChannelId]
+    const youtubeAccountsWithoutTwitch: CreatorAccount[] = []
+
+    // Primeira passagem: buscar links de Twitch nas bios
+    for (const ytAcc of filteredYoutubeAccounts) {
+      const links = ytAcc.links || []
+      let foundTwitchLink = false
+      
+      for (const link of links) {
+        const m = link.match(twitchRegex)
+        if (m && m[1]) {
+          const login = m[1].toLowerCase()
+          if (!twitchLoginsFromLinks.has(login)) {
+            twitchLoginsFromLinks.set(login, [])
+          }
+          twitchLoginsFromLinks.get(login)!.push(ytAcc.externalId)
+          foundTwitchLink = true
+        }
+      }
+      
+      // Se não encontrou link, adiciona para busca por nome
+      if (!foundTwitchLink) {
+        youtubeAccountsWithoutTwitch.push(ytAcc)
+      }
+    }
+
+    // Buscar contas Twitch que têm links nas bios
+    if (twitchLoginsFromLinks.size > 0) {
+      const logins = Array.from(twitchLoginsFromLinks.keys())
+      const twitchUsers = await fetchTwitchUsersByLogins(logins)
+
+      for (const user of twitchUsers) {
+        const login = user.login.toLowerCase()
+        const youtubeChannelIds = twitchLoginsFromLinks.get(login) || []
+        
+        for (const ytId of youtubeChannelIds) {
+          const ytAcc = filteredYoutubeAccounts.find(a => a.externalId === ytId)
+          if (ytAcc) {
+            youtubeToTwitchMap.set(ytId, {
+              platform: "twitch" as const,
+              externalId: user.id,
+              displayName: user.display_name || user.login,
+              username: user.login,
+              url: `https://twitch.tv/${user.login}`,
+              country: null,
+              language: language || null,
+              followers: null,
+              avgViews: null,
+              gameTags: [...(ytAcc.gameTags || [])],
+              avatarUrl: user.profile_image_url || null,
+              bio: user.description || "",
+              links: []
+            })
+          }
+        }
+      }
+    }
+
+    // Segunda passagem: para canais sem link, buscar por nome no Twitch
+    for (const ytAcc of youtubeAccountsWithoutTwitch) {
+      const searchNames = [
+        ytAcc.username,
+        ytAcc.displayName,
+        normalizeString(ytAcc.username),
+        normalizeString(ytAcc.displayName)
+      ].filter(Boolean)
+
+      // Tentar cada variação do nome
+      for (const searchName of searchNames) {
+        if (!searchName || youtubeToTwitchMap.has(ytAcc.externalId)) break
+
+        const twitchResults = await searchTwitchByName(searchName, { 
+          game, 
+          language, 
+          maxResults: 3 
+        })
+
+        // Verificar se algum resultado parece ser o mesmo usuário
+        for (const twitchAcc of twitchResults) {
+          const isSimilar = 
+            usernamesLookSimilar(ytAcc.username, twitchAcc.username) ||
+            usernamesLookSimilar(ytAcc.displayName, twitchAcc.displayName) ||
+            usernamesLookSimilar(ytAcc.username, twitchAcc.displayName) ||
+            usernamesLookSimilar(ytAcc.displayName, twitchAcc.username)
+
+          if (isSimilar) {
+            // Atualizar gameTags do Twitch com as do YouTube
+            twitchAcc.gameTags = [...(ytAcc.gameTags || [])]
+            youtubeToTwitchMap.set(ytAcc.externalId, twitchAcc)
+            break
+          }
+        }
+
+        // Se encontrou, não precisa tentar outras variações
+        if (youtubeToTwitchMap.has(ytAcc.externalId)) break
+      }
     }
   }
-  const dedupAccounts = Array.from(dedupMap.values())
 
-  // 5) MERGE EM CRIADORES
-  const creators = mergeAccountsIntoCreators(dedupAccounts)
+  // 4) CRIAR UM CREATOR PARA CADA CANAL DO YOUTUBE (SEM MERGE)
+  const creators: Creator[] = filteredYoutubeAccounts.map((ytAcc, index) => {
+    const accounts: CreatorAccount[] = [ytAcc]
+
+    // Verificar se tem Twitch associado
+    const twitchAcc = youtubeToTwitchMap.get(ytAcc.externalId)
+    if (twitchAcc) {
+      accounts.push(twitchAcc)
+    }
+
+    return {
+      id: `creator_${index + 1}`,
+      name: ytAcc.displayName || ytAcc.username,
+      language: ytAcc.language || null,
+      country: ytAcc.country || null,
+      gameTags: [...(ytAcc.gameTags || [])],
+      accounts
+    }
+  })
 
   return creators
 }
