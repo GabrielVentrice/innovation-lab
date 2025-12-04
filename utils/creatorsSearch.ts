@@ -90,7 +90,7 @@ function arePossiblySameCreator(a: CreatorAccount, b: CreatorAccount): boolean {
 // 3. YOUTUBE: SEARCH POR JOGO E POR NOME
 // -------------------------------------------------------------
 
-async function searchYouTubeByGame({ game, language, region, maxResults = 5 }: { game: string, language?: string, region?: string, maxResults?: number }): Promise<CreatorAccount[]> {
+async function searchYouTubeByGame({ game, language, region, maxResults = 10 }: { game: string, language?: string, region?: string, maxResults?: number }): Promise<CreatorAccount[]> {
   if (!YOUTUBE_API_KEY) return []
 
   const query = `${game} ${language || ""}`.trim()
@@ -300,6 +300,55 @@ async function fetchYouTubeChannelsByIds(ids: string[], { game, language }: { ga
 // 4. TWITCH: SEARCH POR JOGO E POR NOME
 // -------------------------------------------------------------
 
+async function enrichTwitchChannelData(channelIds: string[]): Promise<Map<string, { followers: number, avgViews: number }>> {
+  if (!TWITCH_CLIENT_ID || !TWITCH_APP_TOKEN || !channelIds.length) return new Map()
+
+  // Get user info (includes follower count)
+  const usersUrl = new URL("https://api.twitch.tv/helix/users")
+  channelIds.forEach(id => usersUrl.searchParams.append("id", id))
+
+  const usersRes = await fetch(usersUrl.toString(), {
+    headers: {
+      "Client-ID": TWITCH_CLIENT_ID,
+      "Authorization": `Bearer ${TWITCH_APP_TOKEN}`
+    }
+  })
+
+  if (!usersRes.ok) {
+    console.error("[Twitch enrichment - users] Erro:", usersRes.status, await usersRes.text())
+    return new Map()
+  }
+
+  const usersData = await usersRes.json()
+  const enrichmentMap = new Map<string, { followers: number, avgViews: number }>()
+
+  // Get follower count and view count for each channel
+  for (const user of usersData.data || []) {
+    const followersUrl = new URL("https://api.twitch.tv/helix/channels/followers")
+    followersUrl.searchParams.set("broadcaster_id", user.id)
+
+    const followersRes = await fetch(followersUrl.toString(), {
+      headers: {
+        "Client-ID": TWITCH_CLIENT_ID,
+        "Authorization": `Bearer ${TWITCH_APP_TOKEN}`
+      }
+    })
+
+    let followers = 0
+    if (followersRes.ok) {
+      const followersData = await followersRes.json()
+      followers = followersData.total || 0
+    }
+
+    enrichmentMap.set(user.id, {
+      followers,
+      avgViews: user.view_count || 0
+    })
+  }
+
+  return enrichmentMap
+}
+
 async function searchTwitchByGame({ game, language, maxResults = 5 }: { game: string, language?: string, maxResults?: number }): Promise<CreatorAccount[]> {
   if (!TWITCH_CLIENT_ID || !TWITCH_APP_TOKEN) return []
 
@@ -322,14 +371,20 @@ async function searchTwitchByGame({ game, language, maxResults = 5 }: { game: st
   const data = await res.json()
   const channels = data.data || []
 
-  const normalized = channels
-    .filter((ch: any) => {
-      if (language && ch.broadcaster_language) {
-        return ch.broadcaster_language.toLowerCase().startsWith(language.toLowerCase())
-      }
-      return true
-    })
-    .map((ch: any) => ({
+  const filtered = channels.filter((ch: any) => {
+    if (language && ch.broadcaster_language) {
+      return ch.broadcaster_language.toLowerCase().startsWith(language.toLowerCase())
+    }
+    return true
+  })
+
+  // Enrich with follower and view data
+  const channelIds = filtered.map((ch: any) => ch.id)
+  const enrichmentData = await enrichTwitchChannelData(channelIds)
+
+  const normalized = filtered.map((ch: any) => {
+    const enrichment = enrichmentData.get(ch.id) || { followers: 0, avgViews: 0 }
+    return {
       platform: "twitch" as const,
       externalId: ch.id,
       displayName: ch.display_name,
@@ -337,13 +392,14 @@ async function searchTwitchByGame({ game, language, maxResults = 5 }: { game: st
       url: `https://twitch.tv/${ch.broadcaster_login}`,
       country: null,
       language: ch.broadcaster_language || null,
-      followers: null,
-      avgViews: null,
+      followers: enrichment.followers,
+      avgViews: enrichment.avgViews,
       gameTags: ch.game_name ? [ch.game_name] : [],
       avatarUrl: ch.thumbnail_url || null,
       bio: "",
       links: []
-    }))
+    }
+  })
 
   normalized.forEach((acc: CreatorAccount) => {
     if (!acc.gameTags.length && game) {
@@ -379,14 +435,20 @@ async function searchTwitchByName(name: string, { game, language, maxResults = 5
   const data = await res.json()
   const channels = data.data || []
 
-  const normalized = channels
-    .filter((ch: any) => {
-      if (language && ch.broadcaster_language) {
-        return ch.broadcaster_language.toLowerCase().startsWith(language.toLowerCase())
-      }
-      return true
-    })
-    .map((ch: any) => ({
+  const filtered = channels.filter((ch: any) => {
+    if (language && ch.broadcaster_language) {
+      return ch.broadcaster_language.toLowerCase().startsWith(language.toLowerCase())
+    }
+    return true
+  })
+
+  // Enrich with follower and view data
+  const channelIds = filtered.map((ch: any) => ch.id)
+  const enrichmentData = await enrichTwitchChannelData(channelIds)
+
+  const normalized = filtered.map((ch: any) => {
+    const enrichment = enrichmentData.get(ch.id) || { followers: 0, avgViews: 0 }
+    return {
       platform: "twitch" as const,
       externalId: ch.id,
       displayName: ch.display_name,
@@ -394,13 +456,14 @@ async function searchTwitchByName(name: string, { game, language, maxResults = 5
       url: `https://twitch.tv/${ch.broadcaster_login}`,
       country: null,
       language: ch.broadcaster_language || null,
-      followers: null,
-      avgViews: null,
+      followers: enrichment.followers,
+      avgViews: enrichment.avgViews,
       gameTags: ch.game_name ? [ch.game_name] : [game].filter(Boolean),
       avatarUrl: ch.thumbnail_url || null,
       bio: "",
       links: []
-    }))
+    }
+  })
 
   return normalized
 }
@@ -878,9 +941,14 @@ export async function searchCreators(options: SearchOptions): Promise<Creator[]>
       const logins = Array.from(twitchLoginsFromLinks.keys())
       const twitchUsers = await fetchTwitchUsersByLogins(logins)
 
+      // Enriquecer dados dos usuários Twitch encontrados
+      const twitchUserIds = twitchUsers.map(u => u.id)
+      const enrichmentData = await enrichTwitchChannelData(twitchUserIds)
+
       for (const user of twitchUsers) {
         const login = user.login.toLowerCase()
         const youtubeChannelIds = twitchLoginsFromLinks.get(login) || []
+        const enrichment = enrichmentData.get(user.id) || { followers: 0, avgViews: 0 }
         
         for (const ytId of youtubeChannelIds) {
           const ytAcc = filteredYoutubeAccounts.find(a => a.externalId === ytId)
@@ -893,8 +961,8 @@ export async function searchCreators(options: SearchOptions): Promise<Creator[]>
               url: `https://twitch.tv/${user.login}`,
               country: null,
               language: language || null,
-              followers: null,
-              avgViews: null,
+              followers: enrichment.followers,
+              avgViews: enrichment.avgViews,
               gameTags: [...(ytAcc.gameTags || [])],
               avatarUrl: user.profile_image_url || null,
               bio: user.description || "",
@@ -935,6 +1003,7 @@ export async function searchCreators(options: SearchOptions): Promise<Creator[]>
           if (isSimilar) {
             // Atualizar gameTags do Twitch com as do YouTube
             twitchAcc.gameTags = [...(ytAcc.gameTags || [])]
+            // Os dados já vêm enriquecidos da função searchTwitchByName
             youtubeToTwitchMap.set(ytAcc.externalId, twitchAcc)
             break
           }
