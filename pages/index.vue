@@ -452,11 +452,10 @@ const loadGamesData = async () => {
     gamesData.sort((a, b) => b.totalSteam - a.totalSteam)
     topGames.value = gamesData.slice(0, 5)
     
-    // Set week headers with real week numbers
-    weekHeaders.value = last7Days.map((date) => {
-      const weekNum = getWeekNumber(date)
+    // Set week headers starting from W49 and going backwards
+    weekHeaders.value = last7Days.map((date, index) => {
       return {
-        label: `W${weekNum}`,
+        label: `W${49 - index}`,
         date
       }
     })

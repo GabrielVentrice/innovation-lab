@@ -3,7 +3,7 @@ import type { Creator, SearchOptions, CreatorAccount } from '~/types/creator'
 // -------------------------------------------------------------
 // 0. CONFIGURAÇÕES DE AUTENTICAÇÃO
 // -------------------------------------------------------------
-const YOUTUBE_API_KEY = "AIzaSyAdmjaagBNkc6j3dgTIxCl26NSyS9qWyEA"
+const YOUTUBE_API_KEY = "AIzaSyAquf8u5MQJh4DpARpSemmtMczvC9Hw-1A"
 const TWITCH_CLIENT_ID = 'lk2fxmv06r22w5ko03pt18i92i6g6j'
 const TWITCH_APP_TOKEN = '28lrwi54tznbx7boforv08qojclv80'
 const TIKTOK_ACCESS_TOKEN = "" // deixe vazio se ainda não tiver

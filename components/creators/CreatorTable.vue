@@ -124,11 +124,11 @@
 
               <!-- Location -->
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-white">
-                  {{ creator.country || '-' }}
-                </div>
-                <div class="text-sm text-gray-500">
-                  {{ creator.language || '-' }}
+                <div class="flex items-center gap-2">
+                  <span v-if="creator.country" class="text-2xl">
+                    {{ getCountryFlag(creator.country) }}
+                  </span>
+                  
                 </div>
               </td>
 
@@ -230,5 +230,62 @@ const formatFollowers = (count: number): string => {
     return `${(count / 1000).toFixed(1)}K`
   }
   return count.toString()
+}
+
+const getCountryFlag = (countryCode: string): string => {
+  // Mapping de códigos de países para emojis de bandeiras
+  const countryFlags: Record<string, string> = {
+    'BR': '🇧🇷',
+    'US': '🇺🇸',
+    'GB': '🇬🇧',
+    'UK': '🇬🇧',
+    'CA': '🇨🇦',
+    'MX': '🇲🇽',
+    'AR': '🇦🇷',
+    'CL': '🇨🇱',
+    'CO': '🇨🇴',
+    'PE': '🇵🇪',
+    'VE': '🇻🇪',
+    'ES': '🇪🇸',
+    'PT': '🇵🇹',
+    'FR': '🇫🇷',
+    'DE': '🇩🇪',
+    'IT': '🇮🇹',
+    'JP': '🇯🇵',
+    'KR': '🇰🇷',
+    'CN': '🇨🇳',
+    'IN': '🇮🇳',
+    'AU': '🇦🇺',
+    'NZ': '🇳🇿',
+    'RU': '🇷🇺',
+    'PL': '🇵🇱',
+    'TR': '🇹🇷',
+    'SE': '🇸🇪',
+    'NO': '🇳🇴',
+    'DK': '🇩🇰',
+    'FI': '🇫🇮',
+    'NL': '🇳🇱',
+    'BE': '🇧🇪',
+    'AT': '🇦🇹',
+    'CH': '🇨🇭',
+    'IE': '🇮🇪',
+    'GR': '🇬🇷',
+  }
+  
+  const upperCode = countryCode.toUpperCase()
+  
+  // Se encontrar o código no mapping, retorna a bandeira
+  if (countryFlags[upperCode]) {
+    return countryFlags[upperCode]
+  }
+  
+  // Caso contrário, tenta converter o código para emoji usando Unicode
+  // (funciona para códigos ISO 3166-1 alpha-2)
+  if (upperCode.length === 2) {
+    const codePoints = [...upperCode].map(char => 127397 + char.charCodeAt(0))
+    return String.fromCodePoint(...codePoints)
+  }
+  
+  return '🌍' // Emoji padrão se não encontrar
 }
 </script>

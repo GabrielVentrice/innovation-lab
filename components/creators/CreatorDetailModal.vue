@@ -92,23 +92,44 @@
               <div v-if="contactLinks.length > 0">
                 <h3 class="text-lg font-semibold text-white mb-4">Contact</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <a
+                  <div
                     v-for="link in contactLinks"
                     :key="link.url"
-                    :href="link.url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="flex items-center gap-3 p-4 bg-gray-900 text-brand-red rounded-lg hover:bg-gray-800 border border-gray-800 hover:border-brand-red transition-all group"
+                    class="bg-gray-900 rounded-lg border border-gray-800  transition-all p-4"
                   >
-                    <span class="text-2xl">{{ getContactIcon(link.type) }}</span>
-                    <div class="flex-1 min-w-0">
-                      <div class="font-medium">{{ link.label }}</div>
-                      <div class="text-xs text-gray-400 truncate">{{ link.url }}</div>
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="flex items-center gap-3 text-brand-red  transition-colors group mb-3"
+                    >
+                      <span class="text-2xl">{{ getContactIcon(link.type) }}</span>
+                      <div class="flex-1 min-w-0">
+                        <div class="font-medium">{{ link.label }}</div>
+                      </div>
+                      
+                    </a>
+                    
+                    <button
+                      v-if="link.type === 'email' && !inviteSent"
+                      @click.stop="sendInvite"
+                      class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-brand-red hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      Enviar Convite
+                    </button>
+                    
+                    <div
+                      v-if="link.type === 'email' && inviteSent"
+                      class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-900 border border-green-700 text-green-300 text-sm font-semibold rounded-lg"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      Convite Enviado
                     </div>
-                    <svg class="w-5 h-5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
+                  </div>
                 </div>
               </div>
 
@@ -208,32 +229,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Footer Actions -->
-          <!-- <div class="flex items-center gap-3 p-6 border-t border-gray-800 bg-gray-900">
-            <UiButton
-              variant="primary"
-              size="lg"
-              @click="copyInformation"
-            >
-              📋 Copy Information
-            </UiButton>
-            <UiButton
-              variant="secondary"
-              size="lg"
-              @click="markAsContacted"
-            >
-              ✓ Mark as Contacted
-            </UiButton>
-            <div class="flex-1"></div>
-            <UiButton
-              variant="ghost"
-              size="lg"
-              @click="close"
-            >
-              Close
-            </UiButton>
-          </div> -->
         </div>
       </div>
     </Transition>
@@ -241,7 +236,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { Creator } from '~/types/creator'
 import { formatNumber, getCountryFlag, getLanguageName, extractAllLinks } from '~/utils/formatters'
 
@@ -255,7 +250,16 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   close: []
   'mark-contacted': [creator: Creator]
+  'invite-sent': [creator: Creator]
 }>()
+
+// State
+const inviteSent = ref(false)
+
+// Watch para resetar o estado quando o modal abrir com um novo creator
+watch(() => props.creator?.id, () => {
+  inviteSent.value = false
+})
 
 // Platform labels
 const platformLabels: Record<string, string> = {
@@ -302,6 +306,18 @@ const otherLinks = computed(() => {
 // Methods
 const close = () => {
   emit('close')
+}
+
+const sendInvite = () => {
+  if (!props.creator) return
+  
+  inviteSent.value = true
+  emit('invite-sent', props.creator)
+  
+  // Aqui você pode adicionar lógica adicional, como:
+  // - Enviar para uma API
+  // - Salvar no localStorage
+  // - Mostrar notificação de sucesso
 }
 
 const copyInformation = () => {
