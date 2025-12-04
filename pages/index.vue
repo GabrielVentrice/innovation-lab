@@ -65,67 +65,81 @@
           </div>
         </div>
 
-        <!-- Games Table -->
-        <div v-else class="overflow-x-auto">
-          <div class="inline-block min-w-full align-middle">
-            <!-- Single table with fixed header and footer -->
-            <div class="border border-gray-800 rounded-lg overflow-hidden">
-              <table class="min-w-full ">
-                <!--  -->
-                <thead class="border-b border-gray-800">
-                  <tr class="text-xs text-gray-400 bg-gray-950">
-                    <th colspan="2" class="px-4 py-3 text-center font-semibold uppercase tracking-wider border-r border-gray-800">Date</th>
-                    <th colspan="2" v-for="week in weekHeaders" :key="week.date" class="px-4 py-2 text-center font-semibold uppercase tracking-wider border-l border-gray-800" >
-                      {{ week.date }}
-                    </th>
-                  </tr>
-                  <tr class="text-xs text-gray-400 bg-gray-950 border-t border-gray-800">
-                    <th colspan="2" class="px-4 py-3 text-center font-semibold uppercase tracking-wider border-r border-gray-800 whitespace-nowrap">Top 100 Application</th>
-                    <template v-for="week in weekHeaders" :key="'sub-' + week.date">
-                      <th class="px-4 py-2 text-center font-medium uppercase tracking-wider border-l border-gray-800">
-                        <span class="text-brand-red">Exitlag</span>
+        <!-- Games Table and Chart -->
+        <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Table Section -->
+          <div class="overflow-x-auto">
+            <div class="inline-block min-w-full align-middle">
+              <!-- Single table with fixed header and footer -->
+              <div class="border border-gray-800 rounded-lg overflow-hidden">
+                <table class="min-w-full ">
+                  <!--  -->
+                  <thead class="border-b border-gray-800">
+                    <tr class="text-xs text-gray-400 bg-gray-950">
+                      <th colspan="2" class="px-4 py-3 text-center font-semibold uppercase tracking-wider border-r border-gray-800">Date</th>
+                      <th colspan="2" v-for="week in weekHeaders" :key="week.date" class="px-4 py-2 text-center font-semibold uppercase tracking-wider border-l border-gray-800" >
+                        {{ week.date }}
                       </th>
-                      <th class="px-4 py-2 text-center font-medium uppercase tracking-wider">
-                        <span class="text-blue-400">Steam</span>
-                      </th>
-                    </template>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-800 bg-black ">
-                  <tr v-for="(game, index) in topGames" :key="game.name" class="hover:bg-gray-900/50 transition-colors w-full">
-                    <td class=" left-0 bg-black hover:bg-gray-900/50 px-4 py-2.5 text-xs text-gray-400 border-r border-gray-800 z-10 text-center ">
-                      {{ index + 1 }}
-                    </td>
-                    <td class=" left-16 bg-black hover:bg-gray-900/50 px-4 py-2.5 text-xs font-medium text-white border-r border-gray-800 z-10 text-center whitespace-nowrap">
-                      {{ game.name }}
-                    </td>
-                    <template v-for="(week, weekIdx) in game.weeklyData" :key="'data-' + week.date">
-                      <td :class="['px-4 py-2.5 text-xs text-center font-mono w-24', weekIdx === 0 ? 'border-l border-gray-800' : '']">
-                        <span class="text-brand-red">{{ formatNumberAbbreviated(week.exitlag) }}</span>
+                    </tr>
+                    <tr class="text-xs text-gray-400 bg-gray-950 border-t border-gray-800">
+                      <th colspan="2" class="px-4 py-3 text-center font-semibold uppercase tracking-wider border-r border-gray-800 whitespace-nowrap">Top 100 Application</th>
+                      <template v-for="week in weekHeaders" :key="'sub-' + week.date">
+                        <th class="px-4 py-2 text-center font-medium uppercase tracking-wider border-l border-gray-800">
+                          <span class="text-brand-red">Exitlag</span>
+                        </th>
+                        <th class="px-4 py-2 text-center font-medium uppercase tracking-wider">
+                          <span class="text-blue-400">Steam</span>
+                        </th>
+                      </template>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-800 bg-black ">
+                    <tr v-for="(game, index) in topGames" :key="game.name" class="hover:bg-gray-900/50 transition-colors w-full">
+                      <td class=" left-0 bg-black hover:bg-gray-900/50 px-4 py-2.5 text-xs text-gray-400 border-r border-gray-800 z-10 text-center ">
+                        {{ index + 1 }}
                       </td>
-                      <td class="px-4 py-2.5 text-xs text-center font-mono w-24">
-                        <span class="text-blue-400">{{ formatNumberAbbreviated(week.steam) }}</span>
+                      <td class=" left-16 bg-black hover:bg-gray-900/50 px-4 py-2.5 text-xs font-medium text-white border-r border-gray-800 z-10 text-center whitespace-nowrap">
+                        {{ game.name }}
                       </td>
-                    </template>
-                  </tr>
-                </tbody>
-               
-                <tfoot class="bg-gray-900 border-t-2 border-gray-700">
-                  <tr class="font-bold">
-                    <td colspan="2" class="bg-gray-900 px-4 py-3 text-xs text-white border-r border-gray-800 text-center" >
-                      Total
-                    </td>
-                    <template v-for="(week, weekIdx) in weekTotals" :key="'total-' + week.date">
-                      <td :class="['px-4 py-3 text-xs text-center font-mono', weekIdx === 0 ? 'border-l border-gray-800' : '']">
-                        <span class="text-brand-red font-bold">{{ formatNumberAbbreviated(week.exitlag) }}</span>
+                      <template v-for="(week, weekIdx) in game.weeklyData" :key="'data-' + week.date">
+                        <td :class="['px-4 py-2.5 text-xs text-center font-mono w-24', weekIdx === 0 ? 'border-l border-gray-800' : '']">
+                          <span class="text-brand-red">{{ formatNumberAbbreviated(week.exitlag) }}</span>
+                        </td>
+                        <td class="px-4 py-2.5 text-xs text-center font-mono w-24">
+                          <span class="text-blue-400">{{ formatNumberAbbreviated(week.steam) }}</span>
+                        </td>
+                      </template>
+                    </tr>
+                  </tbody>
+                 
+                  <tfoot class="bg-gray-900 border-t-2 border-gray-700">
+                    <tr class="font-bold">
+                      <td colspan="2" class="bg-gray-900 px-4 py-3 text-xs text-white border-r border-gray-800 text-center" >
+                        Total
                       </td>
-                      <td class="px-4 py-3 text-xs text-center font-mono">
-                        <span class="text-blue-400 font-bold">{{ formatNumberAbbreviated(week.steam) }}</span>
-                      </td>
-                    </template>
-                  </tr>
-                </tfoot>
-              </table>
+                      <template v-for="(week, weekIdx) in weekTotals" :key="'total-' + week.date">
+                        <td :class="['px-4 py-3 text-xs text-center font-mono', weekIdx === 0 ? 'border-l border-gray-800' : '']">
+                          <span class="text-brand-red font-bold">{{ formatNumberAbbreviated(week.exitlag) }}</span>
+                        </td>
+                        <td class="px-4 py-3 text-xs text-center font-mono">
+                          <span class="text-blue-400 font-bold">{{ formatNumberAbbreviated(week.steam) }}</span>
+                        </td>
+                      </template>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart Section -->
+          <div class="border border-gray-800 rounded-lg bg-black p-6 flex flex-col">
+            <div class="mb-4">
+              <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-2">Total Users Trend</h3>
+              <p class="text-xs text-gray-400">ExitLag vs Steam - Last 7 Days</p>
+            </div>
+            <div class="flex-1">
+              <GamesLineChart v-if="weekTotals.length > 0" :weekly-data="weekTotals" />
             </div>
           </div>
         </div>
