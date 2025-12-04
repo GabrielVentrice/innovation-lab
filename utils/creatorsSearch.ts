@@ -90,7 +90,7 @@ function arePossiblySameCreator(a: CreatorAccount, b: CreatorAccount): boolean {
 // 3. YOUTUBE: SEARCH POR JOGO E POR NOME
 // -------------------------------------------------------------
 
-async function searchYouTubeByGame({ game, language, region, maxResults = 10 }: { game: string, language?: string, region?: string, maxResults?: number }): Promise<CreatorAccount[]> {
+async function searchYouTubeByGame({ game, language, region, maxResults = 5 }: { game: string, language?: string, region?: string, maxResults?: number }): Promise<CreatorAccount[]> {
   if (!YOUTUBE_API_KEY) return []
 
   const query = `${game} ${language || ""}`.trim()
@@ -164,7 +164,7 @@ async function fetchYouTubeRecentVideosAvgViews(channelId: string): Promise<numb
     searchUrl.searchParams.set("channelId", channelId)
     searchUrl.searchParams.set("type", "video")
     searchUrl.searchParams.set("order", "date")
-    searchUrl.searchParams.set("maxResults", "50")
+    searchUrl.searchParams.set("maxResults", "10")
     searchUrl.searchParams.set("key", YOUTUBE_API_KEY)
 
     const searchRes = await fetch(searchUrl.toString())

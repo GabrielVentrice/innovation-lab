@@ -31,7 +31,7 @@
       <!-- Title Section -->
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-white">
-          Creators Dashboard
+          Exitlab Creators Hub
         </h1>
         <p class="mt-1 text-sm text-gray-500">
           Find and connect with content creators
@@ -45,16 +45,14 @@
           <div class="flex items-center gap-2 text-xs text-gray-500">
             <span>Timeline by:</span>
             <div class="flex gap-1">
-              <button class="px-3 py-1 rounded bg-gray-900 text-gray-400 hover:bg-gray-800 transition-colors">Day</button>
-              <button class="px-3 py-1 rounded bg-brand-red text-white">Week</button>
+              <button class="px-3 py-1 rounded bg-brand-red text-white">Day</button>
+              <button class="px-3 py-1 rounded bg-gray-900 text-gray-400 hover:bg-gray-800 transition-colors">Week</button>
               <button class="px-3 py-1 rounded bg-gray-900 text-gray-400 hover:bg-gray-800 transition-colors">Month</button>
             </div>
           </div>
         </div>
         
-        <div class="text-xs text-gray-400 mb-4 uppercase tracking-wider">
-          Daily Average Distinct Connected Users*: ExitLag vs Steam
-        </div>
+       
 
         <!-- Loading State -->
         <div v-if="loadingGamesData" class="flex items-center justify-center py-12">
@@ -76,9 +74,9 @@
                 <!--  -->
                 <thead class="border-b border-gray-800">
                   <tr class="text-xs text-gray-400 bg-gray-950">
-                    <th colspan="2" class="px-4 py-3 text-center font-semibold uppercase tracking-wider border-r border-gray-800">Week</th>
+                    <th colspan="2" class="px-4 py-3 text-center font-semibold uppercase tracking-wider border-r border-gray-800">Date</th>
                     <th colspan="2" v-for="week in weekHeaders" :key="week.date" class="px-4 py-2 text-center font-semibold uppercase tracking-wider border-l border-gray-800" >
-                      {{ week.label }}
+                      {{ week.date }}
                     </th>
                   </tr>
                   <tr class="text-xs text-gray-400 bg-gray-950 border-t border-gray-800">
@@ -132,9 +130,7 @@
           </div>
         </div>
 
-        <p class="text-xs text-gray-500 mt-4 italic">
-          Important: For Exitlag, we consider the distinct number of users throughout the entire day. For Steam, we consider the peak concurrent users reached during the day.
-        </p>
+      
       </div>
 
       <!-- Search Bar -->
@@ -413,7 +409,7 @@ const loadGamesData = async () => {
     
     // Get last 7 days
     const uniqueDates = [...new Set(trendsData.map(d => d.date))].sort().reverse()
-    const last7Days = uniqueDates.slice(0, 7).reverse()
+    const last7Days = uniqueDates.slice(0, 6)
     
     // Filter data for last 7 days
     const filteredData = trendsData.filter(d => last7Days.includes(d.date))
